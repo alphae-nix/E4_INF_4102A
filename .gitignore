@@ -1,1 +1,4 @@
 cmake-build-debug/CMakeFiles/
+.idea
+*.mp4
+*.pdf
