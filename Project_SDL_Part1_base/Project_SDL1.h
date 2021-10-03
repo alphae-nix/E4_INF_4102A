@@ -27,9 +27,13 @@ class animal {
 private:
   SDL_Surface* window_surface_ptr_; // ptr to the surface on which we want the
                                     // animal to be drawn, also non-owning
-  SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
+protected:
+    SDL_Rect  animal_frame_rect_;
+    SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
                            // load_surface_for
-   SDL_Rect  animal_frame_rect;
+    bool horizontal_direction_;
+    bool vertical_direction_;
+
   // todo: Attribute(s) to define its position
 public:
   animal(const std::string& file_path, SDL_Surface* window_surface_ptr);
@@ -92,6 +96,7 @@ private:
   SDL_Event window_event_;
 
   // Other attributes here, for example an instance of ground
+  ground groundApp_ = ground(window_surface_ptr_,);
 
 public:
   application(unsigned n_sheep, unsigned n_wolf); // Ctor
