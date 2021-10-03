@@ -1,5 +1,0 @@
-/home/alphae/Cours/C++/E4_INF_4102A/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/alphae/Cours/C++/E4_INF_4102A/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/alphae/Cours/C++/E4_INF_4102A/cmake-build-debug/Project_SDL_Part1_base/CMakeFiles/rebuild_cache.dir
-/home/alphae/Cours/C++/E4_INF_4102A/cmake-build-debug/Project_SDL_Part1_base/CMakeFiles/edit_cache.dir
-/home/alphae/Cours/C++/E4_INF_4102A/cmake-build-debug/Project_SDL_Part1_base/CMakeFiles/SDL_part1.dir
