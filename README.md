@@ -1,7 +1,12 @@
 # E4_INF_4102A
 
 ## Avancement
-Affichage d'une fenêtre cependant impossible d'afficher quelque chose à l'écran.
+###Fait
+- Affichage d'une fenêtre
+- Affichage d'un fond 
+- Affichage des animaux
+- Fermeture de la fenêtre
+### A faire
 
 ## Execution
 ### Via le terminal
