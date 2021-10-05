@@ -31,8 +31,8 @@ protected:
     SDL_Rect  animal_frame_rect_;
     SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
                            // load_surface_for
-    bool horizontal_direction_;
-    bool vertical_direction_;
+    bool horizontal_direction_ = true;
+    bool vertical_direction_ = true;
 
   // todo: Attribute(s) to define its position
 public:
@@ -56,7 +56,7 @@ class sheep : public animal {
 public:
   // todo
   // Ctor
-  sheep(SDL_Surface* window_surface_ptr);
+  sheep(const std::string& file_path, SDL_Surface* window_surface_ptr);
   // Dtor
   ~sheep();
   // implement functions that are purely virtual in base class
@@ -67,7 +67,16 @@ public:
 // class wolf, derived from animal
 // Use only sheep at first. Once the application works
 // for sheep you can add the wolves
-
+class wolf : public animal {
+public:
+    // todo
+    // Ctor
+    wolf(const std::string& file_path, SDL_Surface* window_surface_ptr);
+    // Dtor
+    ~wolf();
+    // implement functions that are purely virtual in base class
+    void move();
+};
 // The "ground" on which all the animals live (like the std::vector
 // in the zoo example).
 class ground {
@@ -77,12 +86,12 @@ private:
 
   // Some attribute to store all the wolves and sheep
   // here
-  std::vector<std::shared_ptr<animal>> animalAdded_;
+  std::vector<std::shared_ptr<animal>> zoo_;
 
 public:
-  ground(SDL_Surface* window_surface_ptr); // todo: Ctor
-  ~ground(); // todo: Dtor, again for clean up (if necessary)
-  void add_animal(); // todo: Add an animal
+  ground(); // todo: Ctor
+  ~ground() = default; // todo: Dtor, again for clean up (if necessary)
+  void add_animal(const std::shared_ptr<animal>& animal); // todo: Add an animal
   void update(); // todo: "refresh the screen": Move animals and draw them
   // Possibly other methods, depends on your implementation
 };
@@ -94,9 +103,10 @@ private:
   SDL_Window* window_ptr_;
   SDL_Surface* window_surface_ptr_;
   SDL_Event window_event_;
+  ground groundApp_;
 
   // Other attributes here, for example an instance of ground
-  ground groundApp_ = ground(window_surface_ptr_,);
+  //ground groundApp_ = ground(window_surface_ptr_);
 
 public:
   application(unsigned n_sheep, unsigned n_wolf); // Ctor
