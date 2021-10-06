@@ -1,7 +1,7 @@
 # E4_INF_4102A
 
 ## Avancement
-###Fait
+### Fait
 - Affichage d'une fenêtre
 - Affichage d'un fond 
 - Affichage des animaux
