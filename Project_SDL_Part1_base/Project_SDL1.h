@@ -27,19 +27,19 @@ class animal {
 private:
   SDL_Surface* window_surface_ptr_; // ptr to the surface on which we want the
                                     // animal to be drawn, also non-owning
-protected:
-    SDL_Rect  animal_frame_rect_;
-    SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
+  SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
                            // load_surface_for
-    bool horizontal_direction_ = true;
-    bool vertical_direction_ = true;
-
   // todo: Attribute(s) to define its position
+  double pos_x_;
+  double pos_y_;
+  double vel_x_;
+  double vel_y_;
+
 public:
   animal(const std::string& file_path, SDL_Surface* window_surface_ptr);
   // todo: The constructor has to load the sdl_surface that corresponds to the
   // texture
-  ~animal(); // todo: Use the destructor to release memory and "clean up
+  virtual ~animal(); // todo: Use the destructor to release memory and "clean up
                // behind you"
 
   void draw(); // todo: Draw the animal on the screen <-> window_surface_ptr.
@@ -48,19 +48,27 @@ public:
 
   virtual void move() = 0; // todo: Animals move around, but in a different
                              // fashion depending on which type of animal
+
+  // Accessors and mutators should be inlined
+  double pos_x() const { return pos_x_; };
+  double& pos_x() { return pos_x_; };
+  double pos_y() const { return pos_y_; };
+  double& pos_y() { return pos_y_; };
+  double vel_x() const { return vel_x_; };
+  double& vel_x() { return vel_x_; };
+  double vel_y() const { return vel_y_; };
+  double& vel_y() { return vel_y_; };
 };
 
 // Insert here:
 // class sheep, derived from animal
 class sheep : public animal {
 public:
-  // todo
   // Ctor
-  sheep(const std::string& file_path, SDL_Surface* window_surface_ptr);
+  sheep(SDL_Surface* window_surface_ptr);
   // Dtor
-  ~sheep();
   // implement functions that are purely virtual in base class
-  void move();
+  void move() override;
 };
 
 // Insert here:
@@ -69,14 +77,13 @@ public:
 // for sheep you can add the wolves
 class wolf : public animal {
 public:
-    // todo
-    // Ctor
-    wolf(const std::string& file_path, SDL_Surface* window_surface_ptr);
-    // Dtor
-    ~wolf();
-    // implement functions that are purely virtual in base class
-    void move();
+  // Ctor
+  wolf(SDL_Surface* window_surface_ptr);
+  // Dtor
+  // implement functions that are purely virtual in base class
+  void move() override;
 };
+
 // The "ground" on which all the animals live (like the std::vector
 // in the zoo example).
 class ground {
@@ -86,14 +93,16 @@ private:
 
   // Some attribute to store all the wolves and sheep
   // here
-  std::vector<std::shared_ptr<animal>> zoo_;
+  std::vector<std::shared_ptr<animal>> all_animals_;
 
 public:
-  ground(); // todo: Ctor
-  ~ground() = default; // todo: Dtor, again for clean up (if necessary)
-  void add_animal(const std::shared_ptr<animal>& animal); // todo: Add an animal
+  ground()=default; // todo: Ctor
+  ground(SDL_Surface* window_surface_ptr); // todo: Ctor
+  //~ground(){}; // todo: Dtor, again for clean up (if necessary)
+  void add_animal(const std::shared_ptr<animal>& new_animal); // todo: Add an animal
   void update(); // todo: "refresh the screen": Move animals and draw them
   // Possibly other methods, depends on your implementation
+  void set_ptr(SDL_Surface* window_surface_ptr);
 };
 
 // The application class, which is in charge of generating the window
@@ -103,10 +112,10 @@ private:
   SDL_Window* window_ptr_;
   SDL_Surface* window_surface_ptr_;
   SDL_Event window_event_;
-  ground groundApp_;
 
   // Other attributes here, for example an instance of ground
-  //ground groundApp_ = ground(window_surface_ptr_);
+  ground g_;
+  unsigned last_ticks_;
 
 public:
   application(unsigned n_sheep, unsigned n_wolf); // Ctor
