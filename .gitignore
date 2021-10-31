@@ -2,3 +2,6 @@ cmake-build-debug/CMakeFiles/
 .idea
 *.mp4
 *.pdf
+.vs
+out
+CMakeSettings.json

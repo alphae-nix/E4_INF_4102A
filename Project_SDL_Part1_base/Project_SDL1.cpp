@@ -10,6 +10,10 @@
 #include <random>
 #include <string>
 
+/*
+    Initialisation de SDL + chargement image
+    Normalement a ne pas toucher
+*/
 void init() {
   // Initialize SDL
   if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0)
@@ -23,6 +27,9 @@ void init() {
                              std::string(IMG_GetError()));
 }
 
+/*
+    Définition de certaines fonctions
+*/
 namespace {
 // Defining a namespace without a name -> Anonymous workspace
 // Its purpose is to indicate to the compiler that everything
@@ -58,16 +65,26 @@ SDL_Surface* load_surface_for(const std::string& path,
   return optimizedSurface;
 }
 
+/*
+    Mouvement linéaire, Permet de faire bouger les x et y
+*/
 void constrained_linear_move_(double& x, double& y, double& vx, double& vy){
+  // Ajoute a la position actuelle la vitesse x le frame time
   x += (frame_time * vx);
   y += (frame_time * vy);
 
-  // Enforce boundaries
+  // Enforce boundaries || Bord de l'écran
   constexpr double h_m = frame_boundary;
   constexpr double w_m = frame_boundary;
   constexpr double h_M = frame_height - frame_boundary;
   constexpr double w_M = frame_width - frame_boundary;
 
+
+  /*
+    Si la nouvelle position sort des bordures :
+        Met la position au niveau de la bordure
+        Change la vitesse
+  */
   if (x < w_m) {
     x = w_m;
     vx = std::abs(vx);
@@ -95,23 +112,36 @@ void constrained_linear_move_(double& x, double& y, double& vx, double& vy){
 // ANIMAL
 /////////////////////////////////////////////////////////////////////////////////
 
+/*
+    Constructeur de la classe animal
+    Param : - file_path, string contenant l'emplacement de l'image
+            - window_surface_ptr, pointeur vers la surface
+*/
 animal::animal(const std::string& file_path, SDL_Surface* window_surface_ptr)
   : window_surface_ptr_{window_surface_ptr}, 
-    pos_x_{0}, pos_y_{0}, vel_x_{0}, vel_y_{0} {
+    pos_x_{0}, pos_y_{0}, vel_x_{0}, vel_y_{0} //Initialise les positions + vitesse à 0
+{
 
-  image_ptr_ = load_surface_for(file_path, window_surface_ptr_);
-  if (!image_ptr_)
+  image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
+  if (!image_ptr_) //Si l'image n'a pas chargé throw une erreur
     throw std::runtime_error("animal::animal(): "
                              "Could not load " +
                              file_path +
                              "\n Error: " + std::string(SDL_GetError()));
 }
 
+/*
+    Destructeur de la classe animal
+    Free la Surface et remet le pointeur sur null
+*/
 animal::~animal() {
   SDL_FreeSurface(image_ptr_);
   image_ptr_ = nullptr;
 }
 
+/*
+    Permet de dessiner l'animal sur la surface
+*/
 void animal::draw() {
   SDL_Rect pos;
   pos.x = (int) pos_x();
@@ -125,15 +155,22 @@ void animal::draw() {
 // SHEEP
 /////////////////////////////////////////////////////////////////////////////////
 
+/*
+    Constructeur de la classe sheep
+    Param : - window_surface_ptr, pointeur vers la surface
+*/
 sheep::sheep(SDL_Surface* window_surface_ptr)
-  : animal("/home/alphae/Cours/C++/E4_INF_4102A/media/sheep.png", window_surface_ptr) {
-  // Spawn sheep randomly
+  : animal("media\\sheep.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+  // Spawn sheep randomly 
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
   vel_x() = 40 - std::rand() % 80;
   vel_y() = 40 - std::rand() % 80;
 }
 
+/*
+    Bouge le mouton à l'aide de la fonction constrained_linear_move_()
+*/
 void sheep::move() {
   constrained_linear_move_(pos_x(), pos_y(), vel_x(), vel_y());
 }
@@ -142,8 +179,12 @@ void sheep::move() {
 // WOLF
 /////////////////////////////////////////////////////////////////////////////////
 
+/*
+    Constructeur de la classe wolf
+    Param : - window_surface_ptr, pointeur vers la surface
+*/
 wolf::wolf(SDL_Surface* window_surface_ptr)
-  : animal("/home/alphae/Cours/C++/E4_INF_4102A/media/wolf.png", window_surface_ptr) {
+  : animal("media\\wolf.png", window_surface_ptr)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn wolf randomly
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -151,6 +192,9 @@ wolf::wolf(SDL_Surface* window_surface_ptr)
   vel_y() = 40 - std::rand() % 80;
 }
 
+/*
+    Bouge le loup à l'aide de la fonction constrained_linear_move_()
+*/
 void wolf::move() {
   constrained_linear_move_(pos_x(), pos_y(), vel_x(), vel_y());
 }
@@ -159,18 +203,31 @@ void wolf::move() {
 // GROUND
 /////////////////////////////////////////////////////////////////////////////////
 
+/*
+    Constructeur de la classe ground
+    Param : - window_surface_ptr, pointeur vers la surface
+*/
 ground::ground(SDL_Surface* window_surface_ptr)
   : window_surface_ptr_{window_surface_ptr_} {};
 
-void 
-ground::set_ptr(SDL_Surface* window_surface_ptr) {
+/*
+    Set le pointer de window_surface_ptr_ 
+    Param : - window_surface_ptr, pointeur vers la surface
+*/
+void ground::set_ptr(SDL_Surface* window_surface_ptr) {
   window_surface_ptr_ = window_surface_ptr;
 }
 
+/*
+    Ajoute un nouvel animal dans le vector
+*/
 void ground::add_animal(const std::shared_ptr<animal>& new_animal) {
-  all_animals_.push_back(new_animal);
+  this->all_animals_.push_back(new_animal);
 }
 
+/*
+    Update le ground
+*/
 void ground::update() {
   // Idee pour proj final
   /*
@@ -188,6 +245,8 @@ void ground::update() {
   //Effacacage de tous les animaux mort
   */
   // Suffisant pour projet 1
+
+  //Pour chaque animal : Move et Draw
   for (const auto& a : all_animals_) {
     a->move();
     a->draw();
@@ -199,43 +258,62 @@ void ground::update() {
 // APPLICATION
 /////////////////////////////////////////////////////////////////////////////////
 
+/*
+    Constructeur de la classe application
+    Param : - n_sheep nombre de mouton
+            - n_wolf nombre de loups
+*/
 application::application(unsigned n_sheep, unsigned n_wolf)
-  : window_ptr_{nullptr}, window_surface_ptr_ {nullptr},
-    window_event_(), 
-    g_(),
+  : window_ptr_{nullptr}, window_surface_ptr_ {nullptr}, //Initialise les ptr à null
+    window_event_(),  //Initialise le window_event
+    g_(), //Initialise le ground
     last_ticks_(SDL_GetTicks()) {
 
+ // Crée une nouvelle fenetre
   window_ptr_ =
       SDL_CreateWindow("SDL2 Window", SDL_WINDOWPOS_CENTERED,
                        SDL_WINDOWPOS_CENTERED, frame_width, frame_height, 0);
-  if (!window_ptr_)
+  if (!window_ptr_) //Si erreur
     throw std::runtime_error("application::application():" + std::string(SDL_GetError()));
+
 
   window_surface_ptr_ = SDL_GetWindowSurface(window_ptr_);
 
-  if (!window_surface_ptr_)
+  if (!window_surface_ptr_)//Si erreur
     throw std::runtime_error("application::application():" + std::string(SDL_GetError()));
 
+  //Set le ptr dans ground
   g_.set_ptr(window_surface_ptr_);
 
-  // Add some sheep
-  for (unsigned i = 0; i < n_sheep; ++i)
-    g_.add_animal(std::make_shared<sheep>(window_surface_ptr_));
-  // Add some wolves
-  for (unsigned i = 0; i < n_wolf; ++i)
-    g_.add_animal(std::make_shared<wolf>(window_surface_ptr_));
+    // Add some sheep
+    for (unsigned i = 0; i < n_sheep; ++i)
+        g_.add_animal(std::make_shared<sheep>(window_surface_ptr_));
+    // Add some wolves
+    for (unsigned i = 0; i < n_wolf; ++i)
+        g_.add_animal(std::make_shared<wolf>(window_surface_ptr_));
+
 }
 
+/*
+    Destructeur de la classe application
+    Libère les surfaces
+*/
 application::~application() {
   SDL_FreeSurface(window_surface_ptr_);
   SDL_DestroyWindow(window_ptr_);
 }
 
+/*
+    Boucle principale
+*/
 int application::loop(unsigned period) {
 
+  //Initialise le nombre de Ticj
   unsigned start_ticks = SDL_GetTicks();
   last_ticks_ = SDL_GetTicks();
   bool keep_window_open = true;
+
+  //Boucle principale, tant que la fenetre est ouverte ou que la période n'est pas dépassé
   while (keep_window_open && ((SDL_GetTicks()-start_ticks) < period*1000)) {
     while (SDL_PollEvent(&window_event_) > 0) {
       switch (window_event_.type) {
@@ -244,9 +322,10 @@ int application::loop(unsigned period) {
         break;
       }
     }
-
+    //Clear l'écran + remplis de vert
     SDL_FillRect(window_surface_ptr_, NULL,
                  SDL_MapRGB(window_surface_ptr_->format, 0, 255, 127));
+    //Update le ground
     g_.update();
     unsigned nt = SDL_GetTicks();
     if ((nt - last_ticks_) < frame_time * 1000.)
