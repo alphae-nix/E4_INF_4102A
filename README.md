@@ -21,7 +21,7 @@
 
 ## Hiérarchie du code
 Principe des classe [fermé/Ouverts](https://fr.wikipedia.org/wiki/Principe_ouvert/ferm%C3%A9)
-[](./media/hierarchie.png)
+![](./media/hierarchie.png)
 
 ____ 
 
