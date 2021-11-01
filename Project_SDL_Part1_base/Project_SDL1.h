@@ -60,6 +60,33 @@ public:
   double& vel_y() { return vel_y_; };
 };
 
+
+class human {
+
+private:
+    SDL_Surface* window_surface_ptr_; // ptr to the surface on which we want the
+                                    // animal to be drawn, also non-owning
+    SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
+                             // load_surface_for
+    // todo: Attribute(s) to define its position
+    double pos_x_;
+    double pos_y_;
+
+public:
+    human(const std::string& file_path, SDL_Surface* window_surface_ptr);
+    virtual ~human();
+
+    void draw();
+
+    virtual void move();
+
+    double pos_x() const { return pos_x_; };
+    double& pos_x() { return pos_x_; };
+    double pos_y() const { return pos_y_; };
+    double& pos_y() { return pos_y_; };
+};
+
+
 // Insert here:
 // class sheep, derived from animal
 class sheep : public animal {
@@ -83,6 +110,7 @@ public:
   // implement functions that are purely virtual in base class
   void move() override;
 };
+
 
 // The "ground" on which all the animals live (like the std::vector
 // in the zoo example).
