@@ -106,6 +106,40 @@ void constrained_linear_move_(double& x, double& y, double& vx, double& vy){
   }
 }
 
+
+void constrained_linear_move_key_(double& x, double& y) {
+    // Ajoute a la position actuelle la vitesse x le frame time
+    
+
+    // Enforce boundaries || Bord de l'écran
+    constexpr double h_m = frame_boundary;
+    constexpr double w_m = frame_boundary;
+    constexpr double h_M = frame_height - frame_boundary;
+    constexpr double w_M = frame_width - frame_boundary;
+
+
+    /*
+      Si la nouvelle position sort des bordures :
+          Met la position au niveau de la bordure
+          Change la vitesse
+    */
+    if (x < w_m) {
+        x = w_m;
+    }
+
+    if (y < w_m) {
+        y = w_m;
+    }
+
+    if (x > w_M) {
+        x = w_M;
+    }
+
+    if (y > h_M) {
+        y = h_M;
+    }
+}
+
 } // namespace
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -151,6 +185,67 @@ void animal::draw() {
   SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, &pos);
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////
+// HUMAN
+/////////////////////////////////////////////////////////////////////////////////
+
+/*
+    Constructeur de la classe human
+    Param : - file_path, string contenant l'emplacement de l'image
+            - window_surface_ptr, pointeur vers la surface
+*/
+
+human::human(const std::string& file_path, SDL_Surface* window_surface_ptr)
+    : window_surface_ptr_{ window_surface_ptr },
+    pos_x_{ 0 }, pos_y_{ 0 } //Initialise les positions + vitesse à 0
+{
+
+    image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
+    if (!image_ptr_) //Si l'image n'a pas chargé throw une erreur
+        throw std::runtime_error("human::human(): "
+            "Could not load " +
+            file_path +
+            "\n Error: " + std::string(SDL_GetError()));
+}
+
+/*
+    Destructeur de la classe human
+    Free la Surface et remet le pointeur sur null
+*/
+human::~human() {
+    SDL_FreeSurface(image_ptr_);
+    image_ptr_ = nullptr;
+}
+
+void human::draw() {
+    SDL_Rect pos;
+    pos.x = (int)pos_x();
+    pos.y = (int)pos_y();
+    pos.w = image_ptr_->w;
+    pos.h = image_ptr_->h;
+    SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, &pos);
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+// SHEPHERD
+/////////////////////////////////////////////////////////////////////////////////
+
+/*
+    Constructeur de la classe shepherd
+    Param : - window_surface_ptr, pointeur vers la surface
+*/
+shepherd::shepherd(SDL_Surface* window_surface_ptr)
+    : human("media/shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    // Spawn sheep randomly 
+    pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
+    pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
+}
+
+void shepherd::move() {
+    constrained_linear_move_key_(pos_x(), pos_y());
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // SHEEP
 /////////////////////////////////////////////////////////////////////////////////
@@ -160,7 +255,7 @@ void animal::draw() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 sheep::sheep(SDL_Surface* window_surface_ptr)
-  : animal("media\\sheep.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+  : animal("media/sheep.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn sheep randomly 
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -184,7 +279,7 @@ void sheep::move() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 wolf::wolf(SDL_Surface* window_surface_ptr)
-  : animal("media\\wolf.png", window_surface_ptr)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
+  : animal("media/wolf.png", window_surface_ptr)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn wolf randomly
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);

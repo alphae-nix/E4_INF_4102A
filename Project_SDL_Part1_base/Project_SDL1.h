@@ -78,7 +78,7 @@ public:
 
     void draw();
 
-    virtual void move();
+    virtual void move() = 0;
 
     double pos_x() const { return pos_x_; };
     double& pos_x() { return pos_x_; };
@@ -86,6 +86,15 @@ public:
     double& pos_y() { return pos_y_; };
 };
 
+//class du berger
+class shepherd : public human {
+public:
+    //Ctor
+    shepherd(SDL_Surface* window_surface_ptr);
+    //Dtor
+    // implement functions that are purely virtual in base class
+    void move() override;
+};
 
 // Insert here:
 // class sheep, derived from animal
