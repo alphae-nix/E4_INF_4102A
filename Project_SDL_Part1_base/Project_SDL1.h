@@ -69,8 +69,8 @@ private:
     SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
                              // load_surface_for
     // todo: Attribute(s) to define its position
-    double pos_x_;
-    double pos_y_;
+    double pos_x_human;
+    double pos_y_human;
 
 public:
     human(const std::string& file_path, SDL_Surface* window_surface_ptr);
@@ -80,10 +80,10 @@ public:
 
     virtual void move() = 0;
 
-    double pos_x() const { return pos_x_; };
-    double& pos_x() { return pos_x_; };
-    double pos_y() const { return pos_y_; };
-    double& pos_y() { return pos_y_; };
+    double pos_x() const { return pos_x_human; };
+    double& pos_x() { return pos_x_human; };
+    double pos_y() const { return pos_y_human; };
+    double& pos_y() { return pos_y_human; };
 };
 
 //class du berger
@@ -131,12 +131,14 @@ private:
   // Some attribute to store all the wolves and sheep
   // here
   std::vector<std::shared_ptr<animal>> all_animals_;
+  std::vector<std::shared_ptr<human>> all_human_;
 
 public:
   ground()=default; // todo: Ctor
   ground(SDL_Surface* window_surface_ptr); // todo: Ctor
   //~ground(){}; // todo: Dtor, again for clean up (if necessary)
   void add_animal(const std::shared_ptr<animal>& new_animal); // todo: Add an animal
+  void add_human(const std::shared_ptr<human>& new_human);
   void update(); // todo: "refresh the screen": Move animals and draw them
   // Possibly other methods, depends on your implementation
   void set_ptr(SDL_Surface* window_surface_ptr);

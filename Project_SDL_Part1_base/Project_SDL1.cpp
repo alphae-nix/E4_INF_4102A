@@ -106,7 +106,7 @@ void constrained_linear_move_(double& x, double& y, double& vx, double& vy){
   }
 }
 
-
+//mouvement du shpherd limité par la bordure
 void constrained_linear_move_key_(double& x, double& y) {
     // Ajoute a la position actuelle la vitesse x le frame time
     
@@ -116,6 +116,7 @@ void constrained_linear_move_key_(double& x, double& y) {
     constexpr double w_m = frame_boundary;
     constexpr double h_M = frame_height - frame_boundary;
     constexpr double w_M = frame_width - frame_boundary;
+    SDL_Event e;
 
 
     /*
@@ -123,21 +124,44 @@ void constrained_linear_move_key_(double& x, double& y) {
           Met la position au niveau de la bordure
           Change la vitesse
     */
-    if (x < w_m) {
-        x = w_m;
+    while (SDL_PollEvent(&e) != 0)
+    {
+        if (e.type == SDL_KEYDOWN)
+        {
+            switch (e.key.keysym.sym)
+            {
+            case SDLK_z:
+                y = y + 1;
+            case SDLK_s:
+                y = y - 1;
+            case SDLK_d:
+                x = x + 1;
+            case SDLK_q:
+                x = x + 1;
+            }
+        }
+        
+
+        if (x < w_m) {
+            x = w_m;
+        }
+
+        if (y < w_m) {
+            y = w_m;
+        }
+
+        if (x > w_M) {
+            x = w_M;
+        }
+
+        if (y > h_M) {
+            y = h_M;
+        }
+        
     }
 
-    if (y < w_m) {
-        y = w_m;
-    }
 
-    if (x > w_M) {
-        x = w_M;
-    }
-
-    if (y > h_M) {
-        y = h_M;
-    }
+    
 }
 
 } // namespace
@@ -198,7 +222,7 @@ void animal::draw() {
 
 human::human(const std::string& file_path, SDL_Surface* window_surface_ptr)
     : window_surface_ptr_{ window_surface_ptr },
-    pos_x_{ 0 }, pos_y_{ 0 } //Initialise les positions + vitesse à 0
+    pos_x_human{ 0 }, pos_y_human{ 0 } //Initialise les positions + vitesse à 0
 {
 
     image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
@@ -319,6 +343,12 @@ void ground::set_ptr(SDL_Surface* window_surface_ptr) {
 void ground::add_animal(const std::shared_ptr<animal>& new_animal) {
   this->all_animals_.push_back(new_animal);
 }
+/*
+    Ajoute un nouvel human dans le vector
+*/
+void ground::add_human(const std::shared_ptr<human>& new_human) {
+    this->all_human_.push_back(new_human);
+}
 
 /*
     Update le ground
@@ -345,6 +375,10 @@ void ground::update() {
   for (const auto& a : all_animals_) {
     a->move();
     a->draw();
+  }
+  for (const auto& h : all_human_) {
+      h->move();
+      h->draw();
   }
 }
 
@@ -386,6 +420,8 @@ application::application(unsigned n_sheep, unsigned n_wolf)
     // Add some wolves
     for (unsigned i = 0; i < n_wolf; ++i)
         g_.add_animal(std::make_shared<wolf>(window_surface_ptr_));
+
+    g_.add_human(std::make_shared<shepherd>(window_surface_ptr_));
 
 }
 
