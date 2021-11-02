@@ -108,7 +108,6 @@ void constrained_linear_move_(double& x, double& y, double& vx, double& vy){
 
 //mouvement du shpherd limité par la bordure
 void constrained_linear_move_key_(double& x, double& y) {
-    // Ajoute a la position actuelle la vitesse x le frame time
     
 
     // Enforce boundaries || Bord de l'écran
@@ -117,6 +116,7 @@ void constrained_linear_move_key_(double& x, double& y) {
     constexpr double h_M = frame_height - frame_boundary;
     constexpr double w_M = frame_width - frame_boundary;
     SDL_Event e;
+    
 
 
     /*
@@ -126,18 +126,24 @@ void constrained_linear_move_key_(double& x, double& y) {
     */
     while (SDL_PollEvent(&e) != 0)
     {
+        std::cout << "on rentre dans la boucle event" << std::endl;
         if (e.type == SDL_KEYDOWN)
         {
+            std::cout << "keydown" << std::endl;
             switch (e.key.keysym.sym)
             {
             case SDLK_z:
-                y = y + 1;
+                std::cout << "clic z" << std::endl;
+                y = y + 10;
             case SDLK_s:
-                y = y - 1;
+                std::cout << "clic s" << std::endl;
+                y = y - 10;
             case SDLK_d:
-                x = x + 1;
+                std::cout << "clic d" << std::endl;
+                x = x + 10;
             case SDLK_q:
-                x = x + 1;
+                std::cout << "clic q" << std::endl;
+                x = x + 10;
             }
         }
         
@@ -160,8 +166,6 @@ void constrained_linear_move_key_(double& x, double& y) {
         
     }
 
-
-    
 }
 
 } // namespace
@@ -260,7 +264,7 @@ void human::draw() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 shepherd::shepherd(SDL_Surface* window_surface_ptr)
-    : human("media/shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    : human("C:/Users/skarl/OneDrive/Bureau/E4/C++/E4_INF_4102A/media/shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn sheep randomly 
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -279,7 +283,7 @@ void shepherd::move() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 sheep::sheep(SDL_Surface* window_surface_ptr)
-  : animal("media/sheep.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+  : animal("C:/Users/skarl/OneDrive/Bureau/E4/C++/E4_INF_4102A/media/sheep.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn sheep randomly 
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -303,7 +307,7 @@ void sheep::move() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 wolf::wolf(SDL_Surface* window_surface_ptr)
-  : animal("media/wolf.png", window_surface_ptr)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
+  : animal("C:/Users/skarl/OneDrive/Bureau/E4/C++/E4_INF_4102A/media/wolf.png", window_surface_ptr)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn wolf randomly
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
