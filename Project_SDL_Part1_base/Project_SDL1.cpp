@@ -128,19 +128,19 @@ void constrained_linear_move_key_(double& x, double& y) {
     //Récupère dans un vector l'état de toute les touches
     const Uint8 * keystate = SDL_GetKeyboardState(NULL);
     //Si la touche Z (W dans le code car SDL inverse les deux), monte le personnage
-    if (keystate[SDL_SCANCODE_W])
+    if (keystate[SDL_SCANCODE_W] || keystate[SDL_SCANCODE_UP])
     {
         y -= speed;
     }
-    if (keystate[SDL_SCANCODE_S])
+    if (keystate[SDL_SCANCODE_S] || keystate[SDL_SCANCODE_DOWN])
     {
         y +=  speed;
     }
-    if (keystate[SDL_SCANCODE_A])
+    if (keystate[SDL_SCANCODE_A] || keystate[SDL_SCANCODE_LEFT])
     {
         x -= speed;
     }
-    if (keystate[SDL_SCANCODE_D])
+    if (keystate[SDL_SCANCODE_D] || keystate[SDL_SCANCODE_RIGHT])
     {
         x += speed;
     }
