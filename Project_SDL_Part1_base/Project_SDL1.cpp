@@ -130,26 +130,31 @@ void constrained_linear_move_key_(double& x, double& y) {
           Met la position au niveau de la bordure
           Change la vitesse
     */
-    while (SDL_PollEvent(&e) != 0)
-    {
+    //while (SDL_PollEvent(&e) != 0)
+    //{
+    SDL_PollEvent(&e);
         //std::cout << "on rentre dans la boucle event" << std::endl;
         if (e.type == SDL_KEYDOWN)
         {
-            std::cout << "keydown" << std::endl;
+            //std::cout << "keydown" << std::endl;
             switch (e.key.keysym.sym)
             {
             case SDLK_z:
-                std::cout << "clic z" << std::endl;
-                y = y + 10;
-            case SDLK_s:
-                std::cout << "clic s" << std::endl;
+              //  std::cout << "clic z" << std::endl;
                 y = y - 10;
+                break;
+            case SDLK_s:
+                //std::cout << "clic s" << std::endl;
+                y = y + 10;
+                break;
             case SDLK_d:
-                std::cout << "clic d" << std::endl;
+                //std::cout << "clic d" << std::endl;
                 x = x + 10;
+                break;
             case SDLK_q:
-                std::cout << "clic q" << std::endl;
-                x = x + 10;
+               // std::cout << "clic q" << std::endl;
+                x = x - 10;
+                break;
             }
         }
         
@@ -170,7 +175,7 @@ void constrained_linear_move_key_(double& x, double& y) {
             y = h_M;
         }
         
-    }
+    //}
 
 }
 
