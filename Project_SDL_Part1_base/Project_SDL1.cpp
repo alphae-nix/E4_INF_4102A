@@ -132,7 +132,7 @@ void constrained_linear_move_key_(double& x, double& y) {
     */
     while (SDL_PollEvent(&e) != 0)
     {
-        std::cout << "on rentre dans la boucle event" << std::endl;
+        //std::cout << "on rentre dans la boucle event" << std::endl;
         if (e.type == SDL_KEYDOWN)
         {
             std::cout << "keydown" << std::endl;
@@ -312,7 +312,7 @@ void human::draw() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 shepherd::shepherd(SDL_Surface* window_surface_ptr)
-    : human("C:/Users/skarl/OneDrive/Bureau/E4/C++/E4_INF_4102A/media/shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    : human("media\\shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn sheep randomly 
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -485,7 +485,7 @@ void ground::update() {
   /*for (const auto& a : all_animals_) {
     a->move();
     a->draw();
-  }
+  }*/
   for (const auto& h : all_human_) {
       h->move();
       h->draw();
