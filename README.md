@@ -2,6 +2,7 @@
 
 ## Avancement
 ### Fait
+- Ajouter un personnage controllable (avec les touches Q,Z,S et D ou avec les flèches directionnel)
 - Affichage d'une fenêtre
 - Affichage d'un fond 
 - Affichage des animaux
@@ -10,7 +11,6 @@
 - Si loup "touche" un mouton : le mouton meurt
 - Les animaux morts sont retirés du vector
 ### A faire
-- Ajouter un personnage controllable (avec les touches Q,Z,S et D ou avec les flèches directionnel)
 - Lorsque 2 moutons se rencontre ils peuvent se reproduire et avoir un enfant si:
     - ils sont de sexe opposé
     - la femelle n'a pas enfanté depuis un certain temps
