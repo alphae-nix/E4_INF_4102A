@@ -120,63 +120,47 @@ void constrained_linear_move_key_(double& x, double& y) {
     constexpr double h_m = frame_boundary;
     constexpr double w_m = frame_boundary;
     constexpr double h_M = frame_height - frame_boundary;
-    constexpr double w_M = frame_width - frame_boundary;
-    SDL_Event e;
-    
+    constexpr double w_M = frame_width - frame_boundary;  
 
+    //Vitesse de déplacement
+    unsigned speed = 5;
 
-    /*
-      Si la nouvelle position sort des bordures :
-          Met la position au niveau de la bordure
-          Change la vitesse
-    */
-    //while (SDL_PollEvent(&e) != 0)
-    //{
-    SDL_PollEvent(&e);
-        //std::cout << "on rentre dans la boucle event" << std::endl;
-        if (e.type == SDL_KEYDOWN)
-        {
-            //std::cout << "keydown" << std::endl;
-            switch (e.key.keysym.sym)
-            {
-            case SDLK_z:
-              //  std::cout << "clic z" << std::endl;
-                y = y - 10;
-                break;
-            case SDLK_s:
-                //std::cout << "clic s" << std::endl;
-                y = y + 10;
-                break;
-            case SDLK_d:
-                //std::cout << "clic d" << std::endl;
-                x = x + 10;
-                break;
-            case SDLK_q:
-               // std::cout << "clic q" << std::endl;
-                x = x - 10;
-                break;
-            }
-        }
-        
+    //Récupère dans un vector l'état de toute les touches
+    const Uint8 * keystate = SDL_GetKeyboardState(NULL);
+    //Si la touche Z (W dans le code car SDL inverse les deux), monte le personnage
+    if (keystate[SDL_SCANCODE_W])
+    {
+        y -= speed;
+    }
+    if (keystate[SDL_SCANCODE_S])
+    {
+        y +=  speed;
+    }
+    if (keystate[SDL_SCANCODE_A])
+    {
+        x -= speed;
+    }
+    if (keystate[SDL_SCANCODE_D])
+    {
+        x += speed;
+    }
 
-        if (x < w_m) {
-            x = w_m;
-        }
+    //Si les x et y dépassent du bord 
+    if (x < w_m) {
+        x = w_m;
+    }
 
-        if (y < w_m) {
-            y = w_m;
-        }
+    if (y < w_m) {
+        y = w_m;
+    }
 
-        if (x > w_M) {
-            x = w_M;
-        }
+    if (x > w_M) {
+        x = w_M;
+    }
 
-        if (y > h_M) {
-            y = h_M;
-        }
-        
-    //}
-
+    if (y > h_M) {
+        y = h_M;
+    }
 }
 
 /*
@@ -562,11 +546,11 @@ int application::loop(unsigned period) {
   //Boucle principale, tant que la fenetre est ouverte ou que la période n'est pas dépassé
   while (keep_window_open && ((SDL_GetTicks()-start_ticks) < period*1000)) {
     while (SDL_PollEvent(&window_event_) > 0) {
-      switch (window_event_.type) {
-      case SDL_QUIT:
-        keep_window_open = false;
-        break;
-      }
+        switch (window_event_.type) {
+        case SDL_QUIT:
+            keep_window_open = false;
+            break;
+        }
     }
     //Clear l'écran + remplis de vert
     SDL_FillRect(window_surface_ptr_, NULL,
