@@ -105,7 +105,37 @@ void constrained_linear_move_(double& x, double& y, double& vx, double& vy){
     vy = -std::abs(vy);
   }
 }
+/*
+* Retourn True si l'animal n'est plus vivant
+*/
+bool is_dead(std::shared_ptr<animal> a) {
+    return !a->alive();
+}
 
+/*
+* Permet de calculer le score avec le vector passé en paramètre
+* Chaque mouton permet d'augmenter le score de 10 points
+*/
+unsigned Score(std::vector<std::shared_ptr<animal>>& all) {
+    unsigned score = 0;
+    for (const auto& animal : all) {
+        if (animal->get_prop("sheep")) {
+            score += 10;
+        }
+    }
+    return score;
+}
+
+/*
+* Fonction pour dessiner le score sur l'écran
+* Appel la fonction Score() pour calculer le score
+*/
+void Draw_Score(std::vector<std::shared_ptr<animal>>& all, SDL_Surface* window_surface_ptr) {
+    unsigned score = Score(all);
+    std::string score_text = "Score: " + std::to_string(score);
+    //SDL_Color textColor = { 255, 255, 255, 0 };
+   // SDL_Surface* surface = font(font, score_text, textColor);
+}
 } // namespace
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -117,9 +147,9 @@ void constrained_linear_move_(double& x, double& y, double& vx, double& vy){
     Param : - file_path, string contenant l'emplacement de l'image
             - window_surface_ptr, pointeur vers la surface
 */
-animal::animal(const std::string& file_path, SDL_Surface* window_surface_ptr)
+animal::animal(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g )
   : window_surface_ptr_{window_surface_ptr}, 
-    pos_x_{0}, pos_y_{0}, vel_x_{0}, vel_y_{0} //Initialise les positions + vitesse à 0
+    pos_x_{ 0 }, pos_y_{ 0 }, vel_x_{ 0 }, vel_y_{ 0 }, timer_{ 0 }, female_{ false }, alive_{ true }, prey_{ false }, type_{}, g_{ g }//Initialise les positions + vitesse + timer à 0
 {
 
   image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
@@ -151,6 +181,25 @@ void animal::draw() {
   SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, &pos);
 }
 
+/*
+* Retour un boolean en fonction de la String passé en paramètre
+*/
+bool animal::get_prop(std::string s) {
+    //Retourne pour chaque cas les bool des propriétés
+    if (s == "alive") {
+        return this->alive_;
+    }
+    else if (s == "prey") {
+        return this->prey_;
+    }
+    else if (s == "female") {
+        return this->female_;
+    }
+    else { //Si la string ne correspond à aucune propriété, retourne true si le type (sheep/wolf...) est égal a s
+        return s == this->type_;
+    }
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // SHEEP
 /////////////////////////////////////////////////////////////////////////////////
@@ -159,13 +208,22 @@ void animal::draw() {
     Constructeur de la classe sheep
     Param : - window_surface_ptr, pointeur vers la surface
 */
-sheep::sheep(SDL_Surface* window_surface_ptr)
-  : animal("media\\sheep.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+sheep::sheep(SDL_Surface* window_surface_ptr, ground* g)
+  : animal("media\\sheep.png", window_surface_ptr, g) /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn sheep randomly 
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
   vel_x() = 40 - std::rand() % 80;
   vel_y() = 40 - std::rand() % 80;
+  int i = std::rand()%2;
+  type() = "sheep";
+  timer() = 0;
+
+  //Détermine le genre du mouton
+  if (i < 1)
+    female() = false;
+  else
+    female() = true;
 }
 
 /*
@@ -173,6 +231,23 @@ sheep::sheep(SDL_Surface* window_surface_ptr)
 */
 void sheep::move() {
   constrained_linear_move_(pos_x(), pos_y(), vel_x(), vel_y());
+}
+
+/*
+* Intéragit avec l'animal passé en paramètre
+*/
+void sheep::interacts(std::shared_ptr<animal> a) {
+    int t = 30;
+
+    if ((a->pos_x() > this->pos_x() && a->pos_x() < this->pos_x() + this->image_ptr()->w) || (a->pos_x() + a->image_ptr()->w > this->pos_x() && a->pos_x() + a->image_ptr()->w < this->pos_x() + this->image_ptr()->w))
+        if ((a->pos_y() > this->pos_y() && a->pos_y() < this->pos_y() + this->image_ptr()->h) || (a->pos_y() + a->image_ptr()->h > this->pos_y() && a->pos_y() + a->image_ptr()->h < this->pos_y() + this->image_ptr()->h))
+        {
+            if (a->get_prop("sheep") && this->female() != a->female()) { // Si l'animal est un mouton et de genre différent
+                //Reset timer 
+                //->g()->add_animal(std::make_shared<sheep>(this->surface(), this->g()));
+                
+            }
+        }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -183,20 +258,43 @@ void sheep::move() {
     Constructeur de la classe wolf
     Param : - window_surface_ptr, pointeur vers la surface
 */
-wolf::wolf(SDL_Surface* window_surface_ptr)
-  : animal("media\\wolf.png", window_surface_ptr)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
+wolf::wolf(SDL_Surface* window_surface_ptr, ground* g)
+  : animal("media\\wolf.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn wolf randomly
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
   vel_x() = 40 - std::rand() % 80;
   vel_y() = 40 - std::rand() % 80;
+  type() = "wolf";
+  timer() = SDL_GetTicks();
 }
 
 /*
     Bouge le loup à l'aide de la fonction constrained_linear_move_()
 */
 void wolf::move() {
+    unsigned death_time = 10; //In seconds
+
+    if (timer() + death_time*1000 < SDL_GetTicks()) {
+        alive() = false;
+        return;
+  }
   constrained_linear_move_(pos_x(), pos_y(), vel_x(), vel_y());
+}
+
+/*
+* Fonction vide pour l'instant
+* A faire : Si prey : Avancer vers la cible ou manger si assez proche
+*/
+void wolf::interacts(std::shared_ptr<animal> a){
+    //Si un animal est dans un rayon de 30 depuis les pos_x et pos_y
+    if (a->get_prop("sheep")) { // Si l'animal est un mouton
+        if (    (a->pos_x() > this->pos_x() && a->pos_x() < this->pos_x() + this->image_ptr()->w ) || (a->pos_x()+ a->image_ptr()->w > this->pos_x() && a->pos_x() + a->image_ptr()->w < this->pos_x() + this->image_ptr()->w)   )
+            if ((a->pos_y() > this->pos_y() && a->pos_y() < this->pos_y() + this->image_ptr()->h) || (a->pos_y() + a->image_ptr()->h > this->pos_y() && a->pos_y() + a->image_ptr()->h < this->pos_y() + this->image_ptr()->h)) {
+                a->alive() = false; //Tue l'animal
+                timer() = SDL_GetTicks(); //Reset le timer de faim
+            }
+        }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -230,10 +328,10 @@ void ground::add_animal(const std::shared_ptr<animal>& new_animal) {
 */
 void ground::update() {
   // Idee pour proj final
-  /*
+  
   for (const auto& a : all_animals_) {
-    if (!a->get_prop("alive"))
-      continue;
+      if (!a->get_prop("alive"))
+          continue;
     for (const auto& b : all_animals_) {
       if (a == b)
         continue;
@@ -241,16 +339,25 @@ void ground::update() {
         continue;
       a->interacts(b);
     }
-  }
-  //Effacacage de tous les animaux mort
-  */
-  // Suffisant pour projet 1
-
-  //Pour chaque animal : Move et Draw
-  for (const auto& a : all_animals_) {
     a->move();
     a->draw();
   }
+
+  //Remove dead 
+  auto remove = std::remove_if(all_animals_.begin(), all_animals_.end(), is_dead);
+  all_animals_.erase(remove, all_animals_.end());
+
+   
+  Draw_Score(all_animals_,window_surface_ptr_);
+  
+  
+  // Suffisant pour projet 1
+
+  //Pour chaque animal : Move et Draw
+  /*for (const auto& a : all_animals_) {
+    a->move();
+    a->draw();
+  }*/
 }
 
 
@@ -287,10 +394,10 @@ application::application(unsigned n_sheep, unsigned n_wolf)
 
     // Add some sheep
     for (unsigned i = 0; i < n_sheep; ++i)
-        g_.add_animal(std::make_shared<sheep>(window_surface_ptr_));
+        g_.add_animal(std::make_shared<sheep>(window_surface_ptr_, &g_));
     // Add some wolves
     for (unsigned i = 0; i < n_wolf; ++i)
-        g_.add_animal(std::make_shared<wolf>(window_surface_ptr_));
+        g_.add_animal(std::make_shared<wolf>(window_surface_ptr_, &g_));
 
 }
 

@@ -10,6 +10,8 @@
 #include <memory>
 #include <optional>
 #include <vector>
+#include "declarations.hh"
+#include <SDL_test.h>
 
 // Defintions
 constexpr double frame_rate = 60.0; // refresh rate
@@ -35,8 +37,21 @@ private:
   double vel_x_;
   double vel_y_;
 
+  //timer pour animaux (l'utilisation change pour chaque)
+  unsigned timer_;
+
+  //Prop
+  bool female_;
+  bool alive_;
+  bool prey_;
+
+  std::string type_; // Sheep, wolf...
+ 
+  ground* g_;
+
+
 public:
-  animal(const std::string& file_path, SDL_Surface* window_surface_ptr);
+  animal(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g);
   // todo: The constructor has to load the sdl_surface that corresponds to the
   // texture
   virtual ~animal(); // todo: Use the destructor to release memory and "clean up
@@ -49,6 +64,10 @@ public:
   virtual void move() = 0; // todo: Animals move around, but in a different
                              // fashion depending on which type of animal
 
+  virtual void interacts(std::shared_ptr<animal> a) = 0; // Intéragit avec l'animal en param
+
+  bool get_prop(std::string); //Retourne un bool selon la string en param
+
   // Accessors and mutators should be inlined
   double pos_x() const { return pos_x_; };
   double& pos_x() { return pos_x_; };
@@ -58,6 +77,26 @@ public:
   double& vel_x() { return vel_x_; };
   double vel_y() const { return vel_y_; };
   double& vel_y() { return vel_y_; };
+
+  unsigned timer() const { return timer_; };
+  unsigned& timer() { return timer_; };
+
+  bool female() const { return female_; };
+  bool& female() { return female_; };
+
+  bool alive() const { return alive_; };
+  bool& alive() { return alive_; };
+
+  bool prey() const { return prey_; };
+  bool& prey() { return prey_; };
+
+  std::string type() const { return type_; };
+  std::string& type() { return type_; };
+
+  SDL_Surface* surface() const { return window_surface_ptr_; };
+  SDL_Surface* image_ptr() const { return image_ptr_; };
+
+  ground* g() { return g_; };
 };
 
 // Insert here:
@@ -65,10 +104,12 @@ public:
 class sheep : public animal {
 public:
   // Ctor
-  sheep(SDL_Surface* window_surface_ptr);
+  sheep(SDL_Surface* window_surface_ptr, ground* g);
   // Dtor
   // implement functions that are purely virtual in base class
   void move() override;
+
+  void interacts(std::shared_ptr<animal> a) override;
 };
 
 // Insert here:
@@ -78,10 +119,12 @@ public:
 class wolf : public animal {
 public:
   // Ctor
-  wolf(SDL_Surface* window_surface_ptr);
+  wolf(SDL_Surface* window_surface_ptr, ground* g);
   // Dtor
   // implement functions that are purely virtual in base class
   void move() override;
+
+  void interacts(std::shared_ptr<animal> a) override;
 };
 
 // The "ground" on which all the animals live (like the std::vector

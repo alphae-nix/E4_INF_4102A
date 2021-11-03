@@ -1,0 +1,2 @@
+class ground;
+class animal;
