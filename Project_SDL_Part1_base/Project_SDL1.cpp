@@ -112,6 +112,68 @@ bool is_dead(std::shared_ptr<animal> a) {
     return !a->alive();
 }
 
+//mouvement du shpherd limité par la bordure
+void constrained_linear_move_key_(double& x, double& y) {
+    
+
+    // Enforce boundaries || Bord de l'écran
+    constexpr double h_m = frame_boundary;
+    constexpr double w_m = frame_boundary;
+    constexpr double h_M = frame_height - frame_boundary;
+    constexpr double w_M = frame_width - frame_boundary;
+    SDL_Event e;
+    
+
+
+    /*
+      Si la nouvelle position sort des bordures :
+          Met la position au niveau de la bordure
+          Change la vitesse
+    */
+    while (SDL_PollEvent(&e) != 0)
+    {
+        std::cout << "on rentre dans la boucle event" << std::endl;
+        if (e.type == SDL_KEYDOWN)
+        {
+            std::cout << "keydown" << std::endl;
+            switch (e.key.keysym.sym)
+            {
+            case SDLK_z:
+                std::cout << "clic z" << std::endl;
+                y = y + 10;
+            case SDLK_s:
+                std::cout << "clic s" << std::endl;
+                y = y - 10;
+            case SDLK_d:
+                std::cout << "clic d" << std::endl;
+                x = x + 10;
+            case SDLK_q:
+                std::cout << "clic q" << std::endl;
+                x = x + 10;
+            }
+        }
+        
+
+        if (x < w_m) {
+            x = w_m;
+        }
+
+        if (y < w_m) {
+            y = w_m;
+        }
+
+        if (x > w_M) {
+            x = w_M;
+        }
+
+        if (y > h_M) {
+            y = h_M;
+        }
+        
+    }
+
+}
+
 /*
 * Permet de calculer le score avec le vector passé en paramètre
 * Chaque mouton permet d'augmenter le score de 10 points
@@ -198,6 +260,66 @@ bool animal::get_prop(std::string s) {
     else { //Si la string ne correspond à aucune propriété, retourne true si le type (sheep/wolf...) est égal a s
         return s == this->type_;
     }
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+// HUMAN
+/////////////////////////////////////////////////////////////////////////////////
+
+/*
+    Constructeur de la classe human
+    Param : - file_path, string contenant l'emplacement de l'image
+            - window_surface_ptr, pointeur vers la surface
+*/
+
+human::human(const std::string& file_path, SDL_Surface* window_surface_ptr)
+    : window_surface_ptr_{ window_surface_ptr },
+    pos_x_human{ 0 }, pos_y_human{ 0 } //Initialise les positions + vitesse à 0
+{
+
+    image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
+    if (!image_ptr_) //Si l'image n'a pas chargé throw une erreur
+        throw std::runtime_error("human::human(): "
+            "Could not load " +
+            file_path +
+            "\n Error: " + std::string(SDL_GetError()));
+}
+
+/*
+    Destructeur de la classe human
+    Free la Surface et remet le pointeur sur null
+*/
+human::~human() {
+    SDL_FreeSurface(image_ptr_);
+    image_ptr_ = nullptr;
+}
+
+void human::draw() {
+    SDL_Rect pos;
+    pos.x = (int)pos_x();
+    pos.y = (int)pos_y();
+    pos.w = image_ptr_->w;
+    pos.h = image_ptr_->h;
+    SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, &pos);
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+// SHEPHERD
+/////////////////////////////////////////////////////////////////////////////////
+
+/*
+    Constructeur de la classe shepherd
+    Param : - window_surface_ptr, pointeur vers la surface
+*/
+shepherd::shepherd(SDL_Surface* window_surface_ptr)
+    : human("C:/Users/skarl/OneDrive/Bureau/E4/C++/E4_INF_4102A/media/shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    // Spawn sheep randomly 
+    pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
+    pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
+}
+
+void shepherd::move() {
+    constrained_linear_move_key_(pos_x(), pos_y());
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -322,6 +444,12 @@ void ground::set_ptr(SDL_Surface* window_surface_ptr) {
 void ground::add_animal(const std::shared_ptr<animal>& new_animal) {
   this->all_animals_.push_back(new_animal);
 }
+/*
+    Ajoute un nouvel human dans le vector
+*/
+void ground::add_human(const std::shared_ptr<human>& new_human) {
+    this->all_human_.push_back(new_human);
+}
 
 /*
     Update le ground
@@ -357,7 +485,11 @@ void ground::update() {
   /*for (const auto& a : all_animals_) {
     a->move();
     a->draw();
-  }*/
+  }
+  for (const auto& h : all_human_) {
+      h->move();
+      h->draw();
+  }
 }
 
 
@@ -398,6 +530,8 @@ application::application(unsigned n_sheep, unsigned n_wolf)
     // Add some wolves
     for (unsigned i = 0; i < n_wolf; ++i)
         g_.add_animal(std::make_shared<wolf>(window_surface_ptr_, &g_));
+
+    g_.add_human(std::make_shared<shepherd>(window_surface_ptr_));
 
 }
 
