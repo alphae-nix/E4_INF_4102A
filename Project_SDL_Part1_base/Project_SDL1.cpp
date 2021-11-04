@@ -105,6 +105,65 @@ void constrained_linear_move_(double& x, double& y, double& vx, double& vy){
     vy = -std::abs(vy);
   }
 }
+void  constrained_linear_move_dog(double& x, double& y, double& vx, double& vy, double& x_human, double& y_human) {
+    // Ajoute a la position actuelle la vitesse x le frame time
+    x += (frame_time * vx);
+    y += (frame_time * vy);
+
+    // Enforce boundaries || Bord de l'écran
+    constexpr double h_m = frame_boundary;
+    constexpr double w_m = frame_boundary;
+    constexpr double h_M = frame_height - frame_boundary;
+    constexpr double w_M = frame_width - frame_boundary;
+    double _x_shepherd = x_human - 40;
+    double x_shepherd = x_human + 80;
+    double _y_shepherd = y_human - 40;
+    double y_shepherd = y_human + 80;
+
+
+    /*
+      Si la nouvelle position sort des bordures :
+          Met la position au niveau de la bordure
+          Change la vitesse
+    */
+    
+    if (x < _x_shepherd) {
+        x = _x_shepherd;
+        vx = std::abs(vx);
+    }
+    if (x > x_shepherd) {
+        x = x_shepherd;
+        vx = std::abs(vx);
+    }
+    if (y < _y_shepherd) {
+        y = _y_shepherd;
+        vx = std::abs(vx);
+    }
+    if (y > y_shepherd) {
+        y = y_shepherd;
+        vx = std::abs(vx);
+    }
+    if (x < w_m) {
+        x = w_m;
+        vx = std::abs(vx);
+    }
+
+    if (y < w_m) {
+        y = w_m;
+        vy = std::abs(vy);
+    }
+
+    if (x > w_M) {
+        x = w_M;
+        vx = -std::abs(vx);
+    }
+
+    if (y > h_M) {
+        y = h_M;
+        vy = -std::abs(vy);
+    }
+}
+
 /*
 * Retourn True si l'animal n'est plus vivant
 */
@@ -301,7 +360,7 @@ void human::draw() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 shepherd::shepherd(SDL_Surface* window_surface_ptr)
-    : human("media\\shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    : human("C:/Users/skarl/OneDrive/Bureau/E4_INF_4102A/media/shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn sheep randomly 
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -320,7 +379,7 @@ void shepherd::move() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 sheep::sheep(SDL_Surface* window_surface_ptr, ground* g)
-  : animal("media\\sheep.png", window_surface_ptr, g) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+  : animal("C:/Users/skarl/OneDrive/Bureau/E4_INF_4102A/media/sheep.png", window_surface_ptr, g) /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn sheep randomly 
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -358,6 +417,9 @@ void sheep::interacts(std::shared_ptr<animal> a) {
                 //->g()->add_animal(std::make_shared<sheep>(this->surface(), this->g()));
                 
             }
+            //if (a->get_prop("wolf")) {
+
+            //}
         }
 }
 
@@ -370,7 +432,7 @@ void sheep::interacts(std::shared_ptr<animal> a) {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 wolf::wolf(SDL_Surface* window_surface_ptr, ground* g)
-  : animal("media\\wolf.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
+  : animal("C:/Users/skarl/OneDrive/Bureau/E4_INF_4102A/media/wolf.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
   // Spawn wolf randomly
   pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
   pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -406,6 +468,27 @@ void wolf::interacts(std::shared_ptr<animal> a){
                 timer() = SDL_GetTicks(); //Reset le timer de faim
             }
         }
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+// DOG
+/////////////////////////////////////////////////////////////////////////////////
+dog::dog(SDL_Surface* window_surface_ptr, ground* g)
+    : animal("C:/Users/skarl/OneDrive/Bureau/E4_INF_4102A/media/doggo.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    // Spawn wolf randomly
+    pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
+    pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
+    vel_x() = 40 - std::rand() % 80;
+    vel_y() = 40 - std::rand() % 80;
+    type() = "dog";
+    timer() = SDL_GetTicks();
+    
+}
+
+void dog::move() {
+
+    //constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y(), my_shepherd.pos_x() , my_shepherd.pos_y());
+    constrained_linear_move_(pos_x(), pos_y(), vel_x(), vel_y());
 }
 
 /////////////////////////////////////////////////////////////////////////////////
