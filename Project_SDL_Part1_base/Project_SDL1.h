@@ -62,7 +62,7 @@ public:
                  // on the static type of the instance
 
   virtual void move() = 0; // todo: Animals move around, but in a different
-                             // fashion depending on which type of animal
+                             // fashion depending on which type of animal<
 
   virtual void interacts(std::shared_ptr<animal> a) = 0; // Intéragit avec l'animal en param
 
@@ -129,6 +129,7 @@ public:
 class shepherd : public human {
 public:
     //Ctor
+
     shepherd(SDL_Surface* window_surface_ptr);
     //Dtor
     // implement functions that are purely virtual in base class
@@ -162,6 +163,22 @@ public:
 
   void interacts(std::shared_ptr<animal> a) override;
 };
+
+class dog : public animal {
+private:
+    std::weak_ptr<shepherd> berger;
+
+public:
+    // Ctor
+    
+    dog(SDL_Surface* window_surface_ptr, ground* g, std::weak_ptr<shepherd> s);
+    // Dtor
+    // implement functions that are purely virtual in base class
+    void move() override;
+
+};
+
+
 
 
 // The "ground" on which all the animals live (like the std::vector
