@@ -260,7 +260,7 @@ bool is_dead(std::shared_ptr<animal> a) {
 */
 animal::animal(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g)
     : window_surface_ptr_{ window_surface_ptr },
-    pos_x_{ 0 }, pos_y_{ 0 }, vel_x_{ 0 }, vel_y_{ 0 }, timer_{ SDL_GetTicks() /* Timer nombre Max*/ }, female_{ false }, alive_{ true }, prey_{ false }, type_{}, g_{ g }//Initialise les positions + vitesse + timer à 0
+    pos_x_{ 0 }, pos_y_{ 0 }, vel_x_{ 0 }, vel_y_{ 0 }, timer_{ SDL_GetTicks() /* Timer nombre Max*/}, female_{false}, alive_{true}, prey_{false}, type_{}, g_{g}//Initialise les positions + vitesse + timer à 0
 {
     image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
     if (!image_ptr_) //Si l'image n'a pas chargé throw une erreur
@@ -360,7 +360,7 @@ void human::draw() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 shepherd::shepherd(SDL_Surface* window_surface_ptr)
-    : human("C:/Users/skarl/OneDrive/Bureau/E4_INF_4102A/media/shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    : human("media\\shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn sheep randomly 
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -387,7 +387,6 @@ sheep::sheep(SDL_Surface* window_surface_ptr, ground* g)
     vel_y() = 40 - std::rand() % 80;
     int i = std::rand() % 2;
     type() = "sheep";
-    timer() = 0;
 
     //Détermine le genre du mouton
     if (i < 1)
@@ -407,25 +406,21 @@ void sheep::move() {
 * Intéragit avec l'animal passé en paramètre
 */
 void sheep::interacts(std::shared_ptr<animal> a) {
-    unsigned time = 5000; //Timer mouton
-
+    unsigned time = 2000; //Timer mouton
     if ((a->pos_x() > this->pos_x() && a->pos_x() < this->pos_x() + this->image_ptr()->w) || (a->pos_x() + a->image_ptr()->w > this->pos_x() && a->pos_x() + a->image_ptr()->w < this->pos_x() + this->image_ptr()->w))
         if ((a->pos_y() > this->pos_y() && a->pos_y() < this->pos_y() + this->image_ptr()->h) || (a->pos_y() + a->image_ptr()->h > this->pos_y() && a->pos_y() + a->image_ptr()->h < this->pos_y() + this->image_ptr()->h))
         {
             if (a->get_prop("sheep") && this->get_prop("female") != a->get_prop("female")) { // Si l'animal est un mouton et de genre différent 
-                /*if (this->get_prop("female") && this->timer() - time > SDL_GetTicks()) {
+                if (this->get_prop("female") && this->timer() + time < SDL_GetTicks()) {
                     this->timer() = SDL_GetTicks();
                     this->g()->add_animal(std::make_shared<sheep>(this->surface(), this->g()));
                 }
 
-                else if (a->get_prop("female") && a->timer() - time > SDL_GetTicks()) {
+                else if (a->get_prop("female") && a->timer() + time < SDL_GetTicks()) {
                     a->timer() = SDL_GetTicks();
                     a->g()->add_animal(std::make_shared<sheep>(a->surface(), a->g()));
-                }*/
+                }
             }
-            //if (a->get_prop("wolf")) {
-
-            //}
         }
 }
 
@@ -452,7 +447,7 @@ wolf::wolf(SDL_Surface* window_surface_ptr, ground* g)
     Bouge le loup à l'aide de la fonction constrained_linear_move_()
 */
 void wolf::move() {
-    unsigned death_time = 300; //In seconds
+    unsigned death_time = 3; //In seconds
 
     if (timer() + death_time * 1000 < SDL_GetTicks()) {
         alive() = false;
@@ -481,7 +476,7 @@ void wolf::interacts(std::shared_ptr<animal> a) {
 // DOG
 /////////////////////////////////////////////////////////////////////////////////
 dog::dog(SDL_Surface* window_surface_ptr, ground* g, std::weak_ptr<shepherd> s)
-    : animal("C:/Users/skarl/OneDrive/Bureau/E4_INF_4102A/media/doggo.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    : animal("media\\doggo.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn wolf randomly
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -537,21 +532,18 @@ void ground::add_human(const std::shared_ptr<human>& new_human) {
 */
 void ground::update() {
     // Idee pour proj final
-    int i = 0;
-
-    for (const auto& a : all_animals_) {
-        i++;
+    for (int i = 0; i < all_animals_.size(); i++) {
+        auto a = all_animals_[i];
         if (!a->get_prop("alive"))
             continue;
-        for (const auto& b : all_animals_) {
+        for (int y = 0; y < all_animals_.size(); y++) {
+            auto b = all_animals_[y];
             if (a == b)
                 continue;
             if (!b->get_prop("alive"))
                 continue;
             a->interacts(b);
         }
-        if (a == NULL)
-            continue;
         a->move();
         a->draw();
     }
