@@ -9,6 +9,8 @@
 #include <numeric>
 #include <random>
 #include <string>
+#include <iostream>
+#include <stdlib.h>
 
 /*
     Initialisation de SDL + chargement image
@@ -447,7 +449,7 @@ wolf::wolf(SDL_Surface* window_surface_ptr, ground* g)
     Bouge le loup à l'aide de la fonction constrained_linear_move_()
 */
 void wolf::move() {
-    unsigned death_time = 3; //In seconds
+    unsigned death_time = 5; //In seconds
 
     if (timer() + death_time * 1000 < SDL_GetTicks()) {
         alive() = false;
@@ -463,8 +465,28 @@ void wolf::move() {
 void wolf::interacts(std::shared_ptr<animal> a) {
     //Si un animal est dans un rayon de 30 depuis les pos_x et pos_y
     if (a->get_prop("sheep")) { // Si l'animal est un mouton
+
+        if (a->pos_x() >= this->pos_x() && a->pos_x() - this->pos_x() <= 200) {
+            this->vel_x() = 100;
+            if (a->pos_y() >= this->pos_y() && this->pos_y() - a->pos_y() <= 200) {
+                this->vel_y() = 100;
+            }
+            if (a->pos_y() <= this->pos_y() && a->pos_y() - this->pos_y() <= 200) {
+                this->vel_y() = -100;
+            }
+        }
+        if (a->pos_x() <= this->pos_x() && this->pos_x() - a->pos_x() <= 200) {
+            this->vel_x() = -100;
+            if (a->pos_y() >= this->pos_y() && this->pos_y() - a->pos_y() <= 200) {
+                this->vel_y() = 100;
+            }
+            if (a->pos_y() <= this->pos_y() && a->pos_y() - this->pos_y() <= 200) {
+                this->vel_y() = -100;
+            }
+        }
         
-        if ((a->pos_x() > this->pos_x() && a->pos_x() < this->pos_x() + this->image_ptr()->w) || (a->pos_x() + a->image_ptr()->w > this->pos_x() && a->pos_x() + a->image_ptr()->w < this->pos_x() + this->image_ptr()->w))
+
+        if ((a->pos_x() > this->pos_x() && a->pos_x() < this->pos_x() + this->image_ptr()->w ) || (a->pos_x()+ a->image_ptr()->w > this->pos_x() && a->pos_x() + a->image_ptr()->w < this->pos_x() + this->image_ptr()->w)   )
             if ((a->pos_y() > this->pos_y() && a->pos_y() < this->pos_y() + this->image_ptr()->h) || (a->pos_y() + a->image_ptr()->h > this->pos_y() && a->pos_y() + a->image_ptr()->h < this->pos_y() + this->image_ptr()->h)) {
                 a->alive() = false; //Tue l'animal
                 timer() = SDL_GetTicks(); //Reset le timer de faim
