@@ -473,7 +473,7 @@ void wolf::interacts(std::shared_ptr<animal> a){
 /////////////////////////////////////////////////////////////////////////////////
 // DOG
 /////////////////////////////////////////////////////////////////////////////////
-dog::dog(SDL_Surface* window_surface_ptr, ground* g)
+dog::dog(SDL_Surface* window_surface_ptr, ground* g, std::weak_ptr<shepherd> s)
     : animal("C:/Users/skarl/OneDrive/Bureau/E4_INF_4102A/media/doggo.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn wolf randomly
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
@@ -482,13 +482,15 @@ dog::dog(SDL_Surface* window_surface_ptr, ground* g)
     vel_y() = 40 - std::rand() % 80;
     type() = "dog";
     timer() = SDL_GetTicks();
+    this->berger = s;
     
 }
 
-void dog::move() {
 
-    //constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y(), my_shepherd.pos_x() , my_shepherd.pos_y());
-    constrained_linear_move_(pos_x(), pos_y(), vel_x(), vel_y());
+void dog::move() {
+    auto b = berger.lock();
+    //constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y());
+    constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y(), b->pos_x(), b->pos_y());
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -604,6 +606,7 @@ application::application(unsigned n_sheep, unsigned n_wolf)
         g_.add_animal(std::make_shared<wolf>(window_surface_ptr_, &g_));
 
     g_.add_human(std::make_shared<shepherd>(window_surface_ptr_));
+    //g_.add_animal(std::make_shared<dog>(window_surface_ptr_,& g_,));
 
 }
 
