@@ -252,51 +252,24 @@ bool is_dead(std::shared_ptr<animal> a) {
 } // namespace
 
 /////////////////////////////////////////////////////////////////////////////////
-// ANIMAL
+// interacting_object
 /////////////////////////////////////////////////////////////////////////////////
 
 /*
-    Constructeur de la classe animal
-    Param : - file_path, string contenant l'emplacement de l'image
-            - window_surface_ptr, pointeur vers la surface
+* Ctor
 */
-animal::animal(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g)
-    : window_surface_ptr_{ window_surface_ptr },
-    pos_x_{ 0 }, pos_y_{ 0 }, vel_x_{ 0 }, vel_y_{ 0 }, timer_{ SDL_GetTicks() /* Timer nombre Max*/}, female_{false}, alive_{true}, prey_{false}, type_{}, g_{g}//Initialise les positions + vitesse + timer à 0
-{
-    image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
-    if (!image_ptr_) //Si l'image n'a pas chargé throw une erreur
-        throw std::runtime_error("animal::animal(): "
-            "Could not load " +
-            file_path +
-            "\n Error: " + std::string(SDL_GetError()));
-}
+interacting_object::interacting_object(std::string s) :
+    type_{ s }, female_{ false }, alive_{ true }, prey_{ false } {}
 
 /*
-    Destructeur de la classe animal
-    Free la Surface et remet le pointeur sur null
+* Dtor
 */
-animal::~animal() {
-    SDL_FreeSurface(image_ptr_);
-    image_ptr_ = nullptr;
-}
-
-/*
-    Permet de dessiner l'animal sur la surface
-*/
-void animal::draw() {
-    SDL_Rect pos;
-    pos.x = (int)pos_x();
-    pos.y = (int)pos_y();
-    pos.w = image_ptr_->w;
-    pos.h = image_ptr_->h;
-    SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, &pos);
-}
+interacting_object::~interacting_object(){}
 
 /*
 * Retour un boolean en fonction de la String passé en paramètre
 */
-bool animal::get_prop(std::string s) {
+bool interacting_object::get_prop(std::string s) {
     //Retourne pour chaque cas les bool des propriétés
     if (s == "alive") {
         return this->alive_;
@@ -313,6 +286,81 @@ bool animal::get_prop(std::string s) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////
+// rendered_object
+/////////////////////////////////////////////////////////////////////////////////
+
+/*
+* Ctor
+*/
+rendered_object::rendered_object(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g, std::string s)
+    : interacting_object(s), window_surface_ptr_{ window_surface_ptr }, pos_x_{0}, pos_y_{0}, g_{g}
+{
+    image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
+    if (!image_ptr_) //Si l'image n'a pas chargé throw une erreur
+        throw std::runtime_error("animal::animal(): "
+            "Could not load " +
+            file_path +
+            "\n Error: " + std::string(SDL_GetError()));
+}
+    
+/*
+* Dtor
+*/
+rendered_object::~rendered_object() {
+    SDL_FreeSurface(image_ptr_);
+    image_ptr_ = nullptr;
+}
+
+/*
+    Permet de dessiner l'animal sur la surface
+*/
+void rendered_object::draw() {
+    SDL_Rect pos;
+    pos.x = (int)pos_x();
+    pos.y = (int)pos_y();
+    pos.w = image_ptr_->w;
+    pos.h = image_ptr_->h;
+    SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, &pos);
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+// moving_object
+/////////////////////////////////////////////////////////////////////////////////
+
+/*
+* Ctor
+*/
+moving_object::moving_object(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g, std::string s)
+    : rendered_object(file_path, window_surface_ptr, g, s), vel_x_{ 0 }, vel_y_{ 0 }, timer_{ 0 }
+{}
+
+/*
+* Dtor
+*/
+moving_object::~moving_object() {}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// ANIMAL
+/////////////////////////////////////////////////////////////////////////////////
+
+/*
+    Constructeur de la classe animal
+    Param : - file_path, string contenant l'emplacement de l'image
+            - window_surface_ptr, pointeur vers la surface
+*/
+animal::animal(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g, std::string s)
+    : moving_object{ file_path, window_surface_ptr, g, s }
+{}
+
+/*
+ *   Destructeur de la classe animal
+ *   Free la Surface et remet le pointeur sur null
+*/
+animal::~animal() {}
+
+
+/////////////////////////////////////////////////////////////////////////////////
 // HUMAN
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -322,35 +370,18 @@ bool animal::get_prop(std::string s) {
             - window_surface_ptr, pointeur vers la surface
 */
 
-human::human(const std::string& file_path, SDL_Surface* window_surface_ptr)
-    : window_surface_ptr_{ window_surface_ptr },
-    pos_x_human{ 0 }, pos_y_human{ 0 } //Initialise les positions + vitesse à 0
-{
-
-    image_ptr_ = load_surface_for(file_path, window_surface_ptr_);  //Charge l'image
-    if (!image_ptr_) //Si l'image n'a pas chargé throw une erreur
-        throw std::runtime_error("human::human(): "
-            "Could not load " +
-            file_path +
-            "\n Error: " + std::string(SDL_GetError()));
-}
+playable_character::playable_character(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g, std::string s)
+    : moving_object{ file_path, window_surface_ptr, g, s}
+{}
 
 /*
     Destructeur de la classe human
     Free la Surface et remet le pointeur sur null
 */
-human::~human() {
-    SDL_FreeSurface(image_ptr_);
-    image_ptr_ = nullptr;
-}
+playable_character::~playable_character() {}
 
-void human::draw() {
-    SDL_Rect pos;
-    pos.x = (int)pos_x();
-    pos.y = (int)pos_y();
-    pos.w = image_ptr_->w;
-    pos.h = image_ptr_->h;
-    SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, &pos);
+void playable_character::move() {
+    constrained_linear_move_key_(pos_x(), pos_y());
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -361,16 +392,16 @@ void human::draw() {
     Constructeur de la classe shepherd
     Param : - window_surface_ptr, pointeur vers la surface
 */
-shepherd::shepherd(SDL_Surface* window_surface_ptr)
-    : human("media\\shepherd.png", window_surface_ptr) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+shepherd::shepherd(SDL_Surface* window_surface_ptr, ground* g)
+    : playable_character("media\\shepherd.png", window_surface_ptr, g, "shepherd") /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn sheep randomly 
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
 }
 
-void shepherd::move() {
-    constrained_linear_move_key_(pos_x(), pos_y());
-}
+shepherd::~shepherd(){}
+
+void shepherd::interacts(std::shared_ptr<moving_object> a) {}
 
 /////////////////////////////////////////////////////////////////////////////////
 // SHEEP
@@ -381,14 +412,14 @@ void shepherd::move() {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 sheep::sheep(SDL_Surface* window_surface_ptr, ground* g)
-    : animal("media\\sheep.png", window_surface_ptr, g) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    : animal("media\\sheep.png", window_surface_ptr, g, "sheep") /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn sheep randomly 
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
     vel_x() = 40 - std::rand() % 80;
     vel_y() = 40 - std::rand() % 80;
     int i = std::rand() % 2;
-    type() = "sheep";
+    prey() = true;
 
     //Détermine le genre du mouton
     if (i < 1)
@@ -407,8 +438,9 @@ void sheep::move() {
 /*
 * Intéragit avec l'animal passé en paramètre
 */
-void sheep::interacts(std::shared_ptr<animal> a) {
+void sheep::interacts(std::shared_ptr<moving_object> a) {
     unsigned time = 2000; //Timer mouton
+
     if ((a->pos_x() > this->pos_x() && a->pos_x() < this->pos_x() + this->image_ptr()->w) || (a->pos_x() + a->image_ptr()->w > this->pos_x() && a->pos_x() + a->image_ptr()->w < this->pos_x() + this->image_ptr()->w))
         if ((a->pos_y() > this->pos_y() && a->pos_y() < this->pos_y() + this->image_ptr()->h) || (a->pos_y() + a->image_ptr()->h > this->pos_y() && a->pos_y() + a->image_ptr()->h < this->pos_y() + this->image_ptr()->h))
         {
@@ -435,7 +467,7 @@ void sheep::interacts(std::shared_ptr<animal> a) {
     Param : - window_surface_ptr, pointeur vers la surface
 */
 wolf::wolf(SDL_Surface* window_surface_ptr, ground* g)
-    : animal("media\\wolf.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    : animal("media\\wolf.png", window_surface_ptr, g, "wolf")  /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn wolf randomly
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
@@ -449,7 +481,7 @@ wolf::wolf(SDL_Surface* window_surface_ptr, ground* g)
     Bouge le loup à l'aide de la fonction constrained_linear_move_()
 */
 void wolf::move() {
-    unsigned death_time = 5; //In seconds
+    unsigned death_time = 8; //In seconds
 
     if (timer() + death_time * 1000 < SDL_GetTicks()) {
         alive() = false;
@@ -462,26 +494,26 @@ void wolf::move() {
 * Fonction vide pour l'instant
 * A faire : Si prey : Avancer vers la cible ou manger si assez proche
 */
-void wolf::interacts(std::shared_ptr<animal> a) {
-    //Si un animal est dans un rayon de 30 depuis les pos_x et pos_y
-    if (a->get_prop("sheep")) { // Si l'animal est un mouton
+void wolf::interacts(std::shared_ptr<moving_object> a) {
+    //Si un animal est dans un rayon de 40 depuis les pos_x et pos_y
+    if (a->get_prop("sheep")) { // Si l'animal est un mouton A REMPLACER PAR PREY
 
         if (a->pos_x() >= this->pos_x() && a->pos_x() - this->pos_x() <= 200) {
-            this->vel_x() = 100;
+            this->vel_x() = 40;
             if (a->pos_y() >= this->pos_y() && this->pos_y() - a->pos_y() <= 200) {
-                this->vel_y() = 100;
+                this->vel_y() = 40;
             }
             if (a->pos_y() <= this->pos_y() && a->pos_y() - this->pos_y() <= 200) {
-                this->vel_y() = -100;
+                this->vel_y() = -40;
             }
         }
         if (a->pos_x() <= this->pos_x() && this->pos_x() - a->pos_x() <= 200) {
-            this->vel_x() = -100;
+            this->vel_x() = -40;
             if (a->pos_y() >= this->pos_y() && this->pos_y() - a->pos_y() <= 200) {
-                this->vel_y() = 100;
+                this->vel_y() = 40;
             }
             if (a->pos_y() <= this->pos_y() && a->pos_y() - this->pos_y() <= 200) {
-                this->vel_y() = -100;
+                this->vel_y() = -40;
             }
         }
         
@@ -497,9 +529,11 @@ void wolf::interacts(std::shared_ptr<animal> a) {
 /////////////////////////////////////////////////////////////////////////////////
 // DOG
 /////////////////////////////////////////////////////////////////////////////////
+
 dog::dog(SDL_Surface* window_surface_ptr, ground* g, std::weak_ptr<shepherd> s)
-    : animal("media\\doggo.png", window_surface_ptr, g)  /*Appel le constructeur de animal avec le chemin de l'image*/ {
+    : animal("media\\doggo.png", window_surface_ptr, g, "dog")  /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn wolf randomly
+    
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
     vel_x() = 40 - std::rand() % 80;
@@ -513,7 +547,6 @@ dog::dog(SDL_Surface* window_surface_ptr, ground* g, std::weak_ptr<shepherd> s)
 
 void dog::move() {
     auto b = berger.lock();
-    //constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y());
     constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y(), b->pos_x(), b->pos_y());
 }
 
@@ -545,7 +578,7 @@ void ground::add_animal(const std::shared_ptr<animal>& new_animal) {
 /*
     Ajoute un nouvel human dans le vector
 */
-void ground::add_human(const std::shared_ptr<human>& new_human) {
+void ground::add_human(const std::shared_ptr<playable_character>& new_human) {
     this->all_human_.push_back(new_human);
 }
 
@@ -630,7 +663,7 @@ application::application(unsigned n_sheep, unsigned n_wolf)
     for (unsigned i = 0; i < n_wolf; ++i)
         g_.add_animal(std::make_shared<wolf>(window_surface_ptr_, &g_));
 
-    g_.add_human(std::make_shared<shepherd>(window_surface_ptr_));
+    g_.add_human(std::make_shared<shepherd>(window_surface_ptr_, &g_));
     //g_.add_animal(std::make_shared<dog>(window_surface_ptr_,& g_,));
 
 }
