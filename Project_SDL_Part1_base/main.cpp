@@ -25,5 +25,7 @@ int main(int argc, char* argv[]) {
 
   SDL_Quit();
 
+  std::system("pause");
+
   return retval;
 }

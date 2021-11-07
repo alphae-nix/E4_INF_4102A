@@ -210,6 +210,8 @@ public:
   void update(); // todo: "refresh the screen": Move animals and draw them
   // Possibly other methods, depends on your implementation
   void set_ptr(SDL_Surface* window_surface_ptr);
+
+  int get_score();
 };
 
 // The application class, which is in charge of generating the window
