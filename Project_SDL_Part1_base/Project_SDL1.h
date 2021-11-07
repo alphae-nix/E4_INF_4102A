@@ -124,7 +124,6 @@ public:
                // behind you"
 };
 
-
 class playable_character : public moving_object {
 
 public:
@@ -188,9 +187,6 @@ public:
     void interacts(std::shared_ptr<moving_object> a) override;
 
 };
-
-
-
 
 // The "ground" on which all the animals live (like the std::vector
 // in the zoo example).

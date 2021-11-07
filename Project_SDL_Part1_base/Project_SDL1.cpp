@@ -650,7 +650,6 @@ application::application(unsigned n_sheep, unsigned n_wolf)
     g_.add_moving(d);
 
     g_.add_moving(std::make_shared<dog>(window_surface_ptr_, &g_, d));
-
 }
 
 /*
