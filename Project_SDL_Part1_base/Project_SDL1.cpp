@@ -506,13 +506,14 @@ wolf::wolf(SDL_Surface* window_surface_ptr, ground* g)
     vel_y() = 40 - std::rand() % 80;
     type() = "wolf";
     timer() = SDL_GetTicks();
+    run_away() = false;
 }
 
 /*
     Bouge le loup à l'aide de la fonction constrained_linear_move_()
 */
 void wolf::move() {
-    unsigned death_time = 8; //In seconds
+    unsigned death_time = 20; //In seconds
 
     if (timer() + death_time * 1000 < SDL_GetTicks()) {
         alive() = false;
@@ -527,24 +528,25 @@ void wolf::move() {
 */
 void wolf::interacts(std::shared_ptr<moving_object> a) {
     //Si un animal est dans un rayon de 40 depuis les pos_x et pos_y
-    if (a->get_prop("sheep")) { // Si l'animal est un mouton A REMPLACER PAR PREY
+    int vitesse = 50;
+    if (a->get_prop("prey") && !run_away() ) { // Si l'animal est un mouton A REMPLACER PAR PREY
 
         if (a->pos_x() >= this->pos_x() && a->pos_x() - this->pos_x() <= 200) {
-            this->vel_x() = 40;
+            this->vel_x() = vitesse;
             if (a->pos_y() >= this->pos_y() && this->pos_y() - a->pos_y() <= 200) {
-                this->vel_y() = 40;
+                this->vel_y() = vitesse;
             }
             if (a->pos_y() <= this->pos_y() && a->pos_y() - this->pos_y() <= 200) {
-                this->vel_y() = -40;
+                this->vel_y() = -vitesse;
             }
         }
         if (a->pos_x() <= this->pos_x() && this->pos_x() - a->pos_x() <= 200) {
-            this->vel_x() = -40;
+            this->vel_x() = -vitesse;
             if (a->pos_y() >= this->pos_y() && this->pos_y() - a->pos_y() <= 200) {
-                this->vel_y() = 40;
+                this->vel_y() = vitesse;
             }
             if (a->pos_y() <= this->pos_y() && a->pos_y() - this->pos_y() <= 200) {
-                this->vel_y() = -40;
+                this->vel_y() = -vitesse;
             }
         }
         
@@ -554,7 +556,33 @@ void wolf::interacts(std::shared_ptr<moving_object> a) {
                 a->alive() = false; //Tue l'animal
                 timer() = SDL_GetTicks(); //Reset le timer de faim
             }
+    }
+
+    if (a->get_prop("dog")) { // Si l'animal est un loup 
+
+        if (a->pos_x() >= this->pos_x() && a->pos_x() - this->pos_x() <= 300) {
+            this->vel_x() = -vitesse;
+            run_away() = true;
+            if (a->pos_y() >= this->pos_y() && this->pos_y() - a->pos_y() <= 300) {
+                this->vel_y() = -vitesse;
+            }
+            if (a->pos_y() <= this->pos_y() && a->pos_y() - this->pos_y() <= 300) {
+                this->vel_y() = vitesse;
+            }
         }
+        else if (a->pos_x() <= this->pos_x() && this->pos_x() - a->pos_x() <= 300) {
+            this->vel_x() = vitesse;
+            run_away() = true;
+            if (a->pos_y() >= this->pos_y() && this->pos_y() - a->pos_y() <= 300) {
+                this->vel_y() = -vitesse;
+            }
+            if (a->pos_y() <= this->pos_y() && a->pos_y() - this->pos_y() <= 300) {
+                this->vel_y() = vitesse;
+            }
+        }
+        else
+            run_away() = false;
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -615,6 +643,8 @@ void ground::update() {
     // Idee pour proj final
     for (int i = 0; i < all_moving_.size(); i++) {
         auto a = all_moving_[i];
+        a->move();
+        a->draw();
         if (!a->get_prop("alive"))
             continue;
         for (int y = 0; y < all_moving_.size(); y++) {
@@ -625,8 +655,6 @@ void ground::update() {
                 continue;
             a->interacts(b);
         }
-        a->move();
-        a->draw();
     }
 
     //Remove dead 

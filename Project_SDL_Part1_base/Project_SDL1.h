@@ -164,6 +164,9 @@ public:
 // Use only sheep at first. Once the application works
 // for sheep you can add the wolves
 class wolf : public animal {
+private :
+    bool run_away_;
+
 public:
   // Ctor
   wolf(SDL_Surface* window_surface_ptr, ground* g);
@@ -172,6 +175,9 @@ public:
   void move() override;
 
   void interacts(std::shared_ptr<moving_object> a) override;
+
+  bool run_away() const { return run_away_; };
+  bool& run_away() { return run_away_; };
 };
 
 class dog : public animal {
