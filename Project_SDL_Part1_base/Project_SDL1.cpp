@@ -410,15 +410,16 @@ void shepherd::interacts(std::shared_ptr<moving_object> a) {}
     Constructeur de la classe sheep
     Param : - window_surface_ptr, pointeur vers la surface
 */
-sheep::sheep(SDL_Surface* window_surface_ptr, ground* g)
+sheep::sheep(SDL_Surface* window_surface_ptr, ground* g, double x, double y)
     : animal("media\\sheep.png", window_surface_ptr, g, "sheep") /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn sheep randomly 
-    pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
-    pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
+    pos_x() = x;
+    pos_y() = y;
     vel_x() = 40 - std::rand() % 80;
     vel_y() = 40 - std::rand() % 80;
     int i = std::rand() % 2;
     prey() = true;
+    timer() = SDL_GetTicks();
 
     //Détermine le genre du mouton
     if (i < 1)
@@ -426,6 +427,16 @@ sheep::sheep(SDL_Surface* window_surface_ptr, ground* g)
     else
         female() = true;
 }
+
+
+/*
+    Constructeur de la classe sheep
+    Param : - window_surface_ptr, pointeur vers la surface
+*/
+sheep::sheep(SDL_Surface* window_surface_ptr, ground* g)
+    : sheep(window_surface_ptr, g, frame_boundary + std::rand() % (frame_width - 2 * frame_boundary), frame_boundary + std::rand() % (frame_height - 2 * frame_boundary) ) /*Appel le constructeur de animal avec le chemin de l'image*/ {
+}
+
 
 /*
     Bouge le mouton à l'aide de la fonction constrained_linear_move_()
@@ -438,7 +449,7 @@ void sheep::move() {
 * Intéragit avec l'animal passé en paramètre
 */
 void sheep::interacts(std::shared_ptr<moving_object> a) {
-    unsigned time = 10; //Timer en s mouton
+    unsigned time = 4; //Timer en s mouton
 
     if ((a->pos_x() > this->pos_x() && a->pos_x() < this->pos_x() + this->image_ptr()->w) || (a->pos_x() + a->image_ptr()->w > this->pos_x() && a->pos_x() + a->image_ptr()->w < this->pos_x() + this->image_ptr()->w))
         if ((a->pos_y() > this->pos_y() && a->pos_y() < this->pos_y() + this->image_ptr()->h) || (a->pos_y() + a->image_ptr()->h > this->pos_y() && a->pos_y() + a->image_ptr()->h < this->pos_y() + this->image_ptr()->h))
@@ -446,12 +457,12 @@ void sheep::interacts(std::shared_ptr<moving_object> a) {
             if (a->get_prop("sheep") && this->get_prop("female") != a->get_prop("female")) { // Si l'animal est un mouton et de genre différent 
                 if (this->get_prop("female") && this->timer() + time*1000 < SDL_GetTicks()) {
                     this->timer() = SDL_GetTicks();
-                    this->g()->add_moving(std::make_shared<sheep>(this->surface(), this->g()));
+                    this->g()->add_moving(std::make_shared<sheep>(this->surface(), this->g(), this->pos_x(), this->pos_y()));
                 }
 
                 else if (a->get_prop("female") && a->timer() + time * 1000 < SDL_GetTicks()) {
                     a->timer() = SDL_GetTicks();
-                    a->g()->add_moving(std::make_shared<sheep>(a->surface(), a->g()));
+                    a->g()->add_moving(std::make_shared<sheep>(a->surface(), a->g(), a->pos_x(), a->pos_y()));
                 }
             }
         }
@@ -629,7 +640,6 @@ void ground::update() {
 int ground::get_score() {
     return Score(all_moving_);
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////
 // APPLICATION

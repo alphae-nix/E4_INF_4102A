@@ -150,6 +150,8 @@ class sheep : public animal {
 public:
   // Ctor
   sheep(SDL_Surface* window_surface_ptr, ground* g);
+
+  sheep(SDL_Surface* window_surface_ptr, ground* g, double x, double y);
   // Dtor
   // implement functions that are purely virtual in base class
   void move() override;
