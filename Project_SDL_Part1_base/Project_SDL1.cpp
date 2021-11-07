@@ -170,7 +170,7 @@ void  constrained_linear_move_dog(double& x, double& y, double& vx, double& vy, 
 /*
 * Retourn True si l'animal n'est plus vivant
 */
-bool is_dead(std::shared_ptr<animal> a) {
+bool is_dead(std::shared_ptr<moving_object> a) {
     return !a->alive();
 }
 
@@ -229,7 +229,7 @@ bool is_dead(std::shared_ptr<animal> a) {
     * Permet de calculer le score avec le vector passé en paramètre
     * Chaque mouton permet d'augmenter le score de 10 points
     */
-    unsigned Score(std::vector<std::shared_ptr<animal>>& all) {
+    unsigned Score(std::vector<std::shared_ptr<moving_object>>& all) {
         unsigned score = 0;
         for (const auto& animal : all) {
             if (animal->get_prop("sheep")) {
@@ -243,7 +243,7 @@ bool is_dead(std::shared_ptr<animal> a) {
     * Fonction pour dessiner le score sur l'écran
     * Appel la fonction Score() pour calculer le score
     */
-    void Draw_Score(std::vector<std::shared_ptr<animal>>& all, SDL_Surface* window_surface_ptr) {
+    void Draw_Score(std::vector<std::shared_ptr<moving_object>>& all, SDL_Surface* window_surface_ptr) {
         unsigned score = Score(all);
         std::string score_text = "Score: " + std::to_string(score);
         //SDL_Color textColor = { 255, 255, 255, 0 };
@@ -361,15 +361,14 @@ animal::~animal() {}
 
 
 /////////////////////////////////////////////////////////////////////////////////
-// HUMAN
+// playable_character
 /////////////////////////////////////////////////////////////////////////////////
 
 /*
-    Constructeur de la classe human
+    Constructeur de la classe playable_character
     Param : - file_path, string contenant l'emplacement de l'image
             - window_surface_ptr, pointeur vers la surface
 */
-
 playable_character::playable_character(const std::string& file_path, SDL_Surface* window_surface_ptr, ground* g, std::string s)
     : moving_object{ file_path, window_surface_ptr, g, s}
 {}
@@ -394,7 +393,7 @@ void playable_character::move() {
 */
 shepherd::shepherd(SDL_Surface* window_surface_ptr, ground* g)
     : playable_character("media\\shepherd.png", window_surface_ptr, g, "shepherd") /*Appel le constructeur de animal avec le chemin de l'image*/ {
-    // Spawn sheep randomly 
+    // Spawn shepherd randomly 
     pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
     pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
 }
@@ -447,12 +446,12 @@ void sheep::interacts(std::shared_ptr<moving_object> a) {
             if (a->get_prop("sheep") && this->get_prop("female") != a->get_prop("female")) { // Si l'animal est un mouton et de genre différent 
                 if (this->get_prop("female") && this->timer() + time < SDL_GetTicks()) {
                     this->timer() = SDL_GetTicks();
-                    this->g()->add_animal(std::make_shared<sheep>(this->surface(), this->g()));
+                    this->g()->add_moving(std::make_shared<sheep>(this->surface(), this->g()));
                 }
 
                 else if (a->get_prop("female") && a->timer() + time < SDL_GetTicks()) {
                     a->timer() = SDL_GetTicks();
-                    a->g()->add_animal(std::make_shared<sheep>(a->surface(), a->g()));
+                    a->g()->add_moving(std::make_shared<sheep>(a->surface(), a->g()));
                 }
             }
         }
@@ -550,6 +549,8 @@ void dog::move() {
     constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y(), b->pos_x(), b->pos_y());
 }
 
+void dog::interacts(std::shared_ptr<moving_object> a){}
+
 /////////////////////////////////////////////////////////////////////////////////
 // GROUND
 /////////////////////////////////////////////////////////////////////////////////
@@ -572,14 +573,8 @@ void ground::set_ptr(SDL_Surface* window_surface_ptr) {
 /*
     Ajoute un nouvel animal dans le vector
 */
-void ground::add_animal(const std::shared_ptr<animal>& new_animal) {
-    this->all_animals_.push_back(new_animal);
-}
-/*
-    Ajoute un nouvel human dans le vector
-*/
-void ground::add_human(const std::shared_ptr<playable_character>& new_human) {
-    this->all_human_.push_back(new_human);
+void ground::add_moving(const std::shared_ptr<moving_object>& new_moving) {
+    this->all_moving_.push_back(new_moving);
 }
 
 /*
@@ -587,12 +582,12 @@ void ground::add_human(const std::shared_ptr<playable_character>& new_human) {
 */
 void ground::update() {
     // Idee pour proj final
-    for (int i = 0; i < all_animals_.size(); i++) {
-        auto a = all_animals_[i];
+    for (int i = 0; i < all_moving_.size(); i++) {
+        auto a = all_moving_[i];
         if (!a->get_prop("alive"))
             continue;
-        for (int y = 0; y < all_animals_.size(); y++) {
-            auto b = all_animals_[y];
+        for (int y = 0; y < all_moving_.size(); y++) {
+            auto b = all_moving_[y];
             if (a == b)
                 continue;
             if (!b->get_prop("alive"))
@@ -604,24 +599,11 @@ void ground::update() {
     }
 
     //Remove dead 
-    auto remove = std::remove_if(all_animals_.begin(), all_animals_.end(), is_dead);
-    all_animals_.erase(remove, all_animals_.end());
+    auto remove = std::remove_if(all_moving_.begin(), all_moving_.end(), is_dead);
+    all_moving_.erase(remove, all_moving_.end());
 
+    Draw_Score(all_moving_, window_surface_ptr_);
 
-    Draw_Score(all_animals_, window_surface_ptr_);
-
-
-    // Suffisant pour projet 1
-
-    //Pour chaque animal : Move et Draw
-    /*for (const auto& a : all_animals_) {
-      a->move();
-      a->draw();
-    }*/
-    for (const auto& h : all_human_) {
-        h->move();
-        h->draw();
-    }
 }
 
 
@@ -658,13 +640,16 @@ application::application(unsigned n_sheep, unsigned n_wolf)
 
     // Add some sheep
     for (unsigned i = 0; i < n_sheep; ++i)
-        g_.add_animal(std::make_shared<sheep>(window_surface_ptr_, &g_));
+        g_.add_moving(std::make_shared<sheep>(window_surface_ptr_, &g_));
     // Add some wolves
     for (unsigned i = 0; i < n_wolf; ++i)
-        g_.add_animal(std::make_shared<wolf>(window_surface_ptr_, &g_));
+        g_.add_moving(std::make_shared<wolf>(window_surface_ptr_, &g_));
 
-    g_.add_human(std::make_shared<shepherd>(window_surface_ptr_, &g_));
-    //g_.add_animal(std::make_shared<dog>(window_surface_ptr_,& g_,));
+    auto d = std::make_shared<shepherd>(window_surface_ptr_, &g_);
+
+    g_.add_moving(d);
+
+    g_.add_moving(std::make_shared<dog>(window_surface_ptr_, &g_, d));
 
 }
 

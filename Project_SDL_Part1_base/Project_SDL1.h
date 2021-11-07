@@ -185,6 +185,8 @@ public:
     // implement functions that are purely virtual in base class
     void move() override;
 
+    void interacts(std::shared_ptr<moving_object> a) override;
+
 };
 
 
@@ -199,15 +201,16 @@ private:
 
   // Some attribute to store all the wolves and sheep
   // here
-  std::vector<std::shared_ptr<animal>> all_animals_;
-  std::vector<std::shared_ptr<playable_character>> all_human_;
+  std::vector<std::shared_ptr<moving_object>> all_moving_;
+
+  //std::vector<std::shared_ptr<playable_character>> all_human_;
 
 public:
   ground()=default; // todo: Ctor
   ground(SDL_Surface* window_surface_ptr); // todo: Ctor
-  //~ground(){}; // todo: Dtor, again for clean up (if necessary)
-  void add_animal(const std::shared_ptr<animal>& new_animal); // todo: Add an animal
-  void add_human(const std::shared_ptr<playable_character>& new_human);
+  ~ground(){}; // todo: Dtor, again for clean up (if necessary)
+  void add_moving(const std::shared_ptr<moving_object>& new_moving); // todo: Add an animal
+
   void update(); // todo: "refresh the screen": Move animals and draw them
   // Possibly other methods, depends on your implementation
   void set_ptr(SDL_Surface* window_surface_ptr);
