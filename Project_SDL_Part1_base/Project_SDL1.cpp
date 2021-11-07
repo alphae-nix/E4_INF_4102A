@@ -108,62 +108,57 @@ namespace {
     vy = -std::abs(vy);
   }
 }
-void  constrained_linear_move_dog(double& x, double& y, double& vx, double& vy, double& x_human, double& y_human) {
+
+void  constrained_linear_move_dog(double& x, double& y, double& vx, double& vy, std::weak_ptr<shepherd> s,std::string& direction, double& prev_x, double& prev_y) {
     // Ajoute a la position actuelle la vitesse x le frame time
-    x += (frame_time * vx);
-    y += (frame_time * vy);
+    auto sh = s.lock();
 
-    // Enforce boundaries || Bord de l'écran
-    constexpr double h_m = frame_boundary;
-    constexpr double w_m = frame_boundary;
-    constexpr double h_M = frame_height - frame_boundary;
-    constexpr double w_M = frame_width - frame_boundary;
-    double _x_shepherd = x_human - 40;
-    double x_shepherd = x_human + 80;
-    double _y_shepherd = y_human - 40;
-    double y_shepherd = y_human + 80;
+    auto sh_x = sh->pos_x() - sh->image_ptr()->w;
+    auto sh_y = sh->pos_y() - sh->image_ptr()->h;
+    auto sh_x2 = sh->pos_x() + sh->image_ptr()->w;
+    auto sh_y2 = sh->pos_y() + sh->image_ptr()->h;
+    double _x_shepherd = sh_x - 40;
+    double x_shepherd = sh_x + 80;
+    double _y_shepherd = sh_y - 40;
+    double y_shepherd = sh_y + 80;
 
-
-    /*
-      Si la nouvelle position sort des bordures :
-          Met la position au niveau de la bordure
-          Change la vitesse
-    */
-    
-    if (x < _x_shepherd) {
-        x = _x_shepherd;
-        vx = std::abs(vx);
+    if (direction == "right") {
+        x += (frame_time * vx);
+        if (x >= sh_x2) {
+            x = sh_x2;
+            direction = "down";
+        }
     }
-    if (x > x_shepherd) {
-        x = x_shepherd;
-        vx = std::abs(vx);
+    else if (direction == "down") {
+        y += (frame_time * vy);
+        if (y >= sh_y2) {
+            y = sh_y2;
+            direction = "left";
+        }
     }
-    if (y < _y_shepherd) {
-        y = _y_shepherd;
-        vx = std::abs(vx);
+    else if (direction == "left") {
+        x -= (frame_time * vx);
+        if (x <= sh_x) {
+            x = sh_x;
+            direction = "up";
+        }
     }
-    if (y > y_shepherd) {
-        y = y_shepherd;
-        vx = std::abs(vx);
-    }
-    if (x < w_m) {
-        x = w_m;
-        vx = std::abs(vx);
-    }
-
-    if (y < w_m) {
-        y = w_m;
-        vy = std::abs(vy);
+    else if (direction == "up") {
+        y -= (frame_time * vy);
+        if (y <= sh_y) {
+            y = sh_y;
+            direction = "right";
+        }
     }
 
-    if (x > w_M) {
-        x = w_M;
-        vx = -std::abs(vx);
+    if (sh->pos_x() != prev_x) {
+        x += - prev_x + sh->pos_x();
+        prev_x = sh->pos_x();
     }
 
-    if (y > h_M) {
-        y = h_M;
-        vy = -std::abs(vy);
+    if (sh->pos_y() != prev_y) {
+        y +=  - prev_y + sh->pos_y();
+        prev_y = sh->pos_y();
     }
 }
 
@@ -174,76 +169,76 @@ bool is_dead(std::shared_ptr<moving_object> a) {
     return !a->alive();
 }
 
-    //mouvement du shpherd limité par la bordure
-    void constrained_linear_move_key_(double& x, double& y) {
+//mouvement du shpherd limité par la bordure
+void constrained_linear_move_key_(double& x, double& y) {
 
 
-        // Enforce boundaries || Bord de l'écran
-        constexpr double h_m = frame_boundary;
-        constexpr double w_m = frame_boundary;
-        constexpr double h_M = frame_height - frame_boundary;
-        constexpr double w_M = frame_width - frame_boundary;
+    // Enforce boundaries || Bord de l'écran
+    constexpr double h_m = frame_boundary;
+    constexpr double w_m = frame_boundary;
+    constexpr double h_M = frame_height - frame_boundary;
+    constexpr double w_M = frame_width - frame_boundary;
 
-        //Vitesse de déplacement
-        unsigned speed = 5;
+    //Vitesse de déplacement
+    unsigned speed = 5;
 
-        //Récupère dans un vector l'état de toute les touches
-        const Uint8* keystate = SDL_GetKeyboardState(NULL);
-        //Si la touche Z (W dans le code car SDL inverse les deux), monte le personnage
-        if (keystate[SDL_SCANCODE_W] || keystate[SDL_SCANCODE_UP])
-        {
-            y -= speed;
-        }
-        if (keystate[SDL_SCANCODE_S] || keystate[SDL_SCANCODE_DOWN])
-        {
-            y += speed;
-        }
-        if (keystate[SDL_SCANCODE_A] || keystate[SDL_SCANCODE_LEFT])
-        {
-            x -= speed;
-        }
-        if (keystate[SDL_SCANCODE_D] || keystate[SDL_SCANCODE_RIGHT])
-        {
-            x += speed;
-        }
-
-        //Si les x et y dépassent du bord 
-        if (x < w_m) {
-            x = w_m;
-        }
-
-        if (y < w_m) {
-            y = w_m;
-        }
-
-        if (x > w_M) {
-            x = w_M;
-        }
-
-        if (y > h_M) {
-            y = h_M;
-        }
+    //Récupère dans un vector l'état de toute les touches
+    const Uint8* keystate = SDL_GetKeyboardState(NULL);
+    //Si la touche Z (W dans le code car SDL inverse les deux), monte le personnage
+    if (keystate[SDL_SCANCODE_W] || keystate[SDL_SCANCODE_UP])
+    {
+        y -= speed;
+    }
+    if (keystate[SDL_SCANCODE_S] || keystate[SDL_SCANCODE_DOWN])
+    {
+        y += speed;
+    }
+    if (keystate[SDL_SCANCODE_A] || keystate[SDL_SCANCODE_LEFT])
+    {
+        x -= speed;
+    }
+    if (keystate[SDL_SCANCODE_D] || keystate[SDL_SCANCODE_RIGHT])
+    {
+        x += speed;
     }
 
-    /*
-    * Permet de calculer le score avec le vector passé en paramètre
-    * Chaque mouton permet d'augmenter le score de 10 points
-    */
-    unsigned Score(std::vector<std::shared_ptr<moving_object>>& all) {
-        unsigned score = 0;
-        for (const auto& animal : all) {
-            if (animal->get_prop("sheep")) {
-                score += 10;
-            }
-        }
-        return score;
+    //Si les x et y dépassent du bord 
+    if (x < w_m) {
+        x = w_m;
     }
 
-    /*
-    * Fonction pour dessiner le score sur l'écran
-    * Appel la fonction Score() pour calculer le score
-    */
-    void Draw_Score(std::vector<std::shared_ptr<moving_object>>& all, SDL_Surface* window_surface_ptr) {
+    if (y < w_m) {
+        y = w_m;
+    }
+
+    if (x > w_M) {
+        x = w_M;
+    }
+
+    if (y > h_M) {
+        y = h_M;
+    }
+}
+
+/*
+* Permet de calculer le score avec le vector passé en paramètre
+* Chaque mouton permet d'augmenter le score de 10 points
+*/
+unsigned Score(std::vector<std::shared_ptr<moving_object>>& all) {
+    unsigned score = 0;
+    for (const auto& animal : all) {
+        if (animal->get_prop("sheep")) {
+            score += 10;
+        }
+    }
+    return score;
+}
+
+/*
+* Fonction pour dessiner le score sur l'écran
+* Appel la fonction Score() pour calculer le score
+*/
+void Draw_Score(std::vector<std::shared_ptr<moving_object>>& all, SDL_Surface* window_surface_ptr) {
         unsigned score = Score(all);
         std::string score_text = "Score: " + std::to_string(score);
         //SDL_Color textColor = { 255, 255, 255, 0 };
@@ -339,7 +334,6 @@ moving_object::moving_object(const std::string& file_path, SDL_Surface* window_s
 */
 moving_object::~moving_object() {}
 
-
 /////////////////////////////////////////////////////////////////////////////////
 // ANIMAL
 /////////////////////////////////////////////////////////////////////////////////
@@ -358,7 +352,6 @@ animal::animal(const std::string& file_path, SDL_Surface* window_surface_ptr, gr
  *   Free la Surface et remet le pointeur sur null
 */
 animal::~animal() {}
-
 
 /////////////////////////////////////////////////////////////////////////////////
 // playable_character
@@ -428,7 +421,6 @@ sheep::sheep(SDL_Surface* window_surface_ptr, ground* g, double x, double y)
         female() = true;
 }
 
-
 /*
     Constructeur de la classe sheep
     Param : - window_surface_ptr, pointeur vers la surface
@@ -436,7 +428,6 @@ sheep::sheep(SDL_Surface* window_surface_ptr, ground* g, double x, double y)
 sheep::sheep(SDL_Surface* window_surface_ptr, ground* g)
     : sheep(window_surface_ptr, g, frame_boundary + std::rand() % (frame_width - 2 * frame_boundary), frame_boundary + std::rand() % (frame_height - 2 * frame_boundary) ) /*Appel le constructeur de animal avec le chemin de l'image*/ {
 }
-
 
 /*
     Bouge le mouton à l'aide de la fonction constrained_linear_move_()
@@ -593,19 +584,24 @@ dog::dog(SDL_Surface* window_surface_ptr, ground* g, std::weak_ptr<shepherd> s)
     : animal("media\\doggo.png", window_surface_ptr, g, "dog")  /*Appel le constructeur de animal avec le chemin de l'image*/ {
     // Spawn wolf randomly
     
-    pos_x() = frame_boundary + std::rand() % (frame_width - 2 * frame_boundary);
-    pos_y() = frame_boundary + std::rand() % (frame_height - 2 * frame_boundary);
-    vel_x() = 40 - std::rand() % 80;
-    vel_y() = 40 - std::rand() % 80;
+    auto shepherdd = s.lock();
+
+    pos_x() = shepherdd->pos_x() - 50;
+    pos_y() = shepherdd->pos_y() - 50;
+    direction() = "right";
+    previous_s_x() = shepherdd->pos_x();
+    previous_s_y() = shepherdd->pos_y();
+    //Spécial pour dog : sa vitesse et non sa vélocité
+    vel_x() = 40;
+    vel_y() = 40;
     type() = "dog";
     timer() = SDL_GetTicks();
-    this->berger = s;
+    this->shepherd_ = s;
     
 }
 
 void dog::move() {
-    auto b = berger.lock();
-    constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y(), b->pos_x(), b->pos_y());
+    constrained_linear_move_dog(pos_x(), pos_y(), vel_x(), vel_y(), shepherd_, direction(), previous_s_x(), previous_s_y());
 }
 
 void dog::interacts(std::shared_ptr<moving_object> a){}

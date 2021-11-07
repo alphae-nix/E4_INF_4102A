@@ -182,7 +182,12 @@ public:
 
 class dog : public animal {
 private:
-    std::weak_ptr<shepherd> berger;
+    std::weak_ptr<shepherd> shepherd_;
+    std::string direction_;
+
+    double previous_s_x_;
+    double previous_s_y_;
+
 
 public:
     // Ctor
@@ -194,6 +199,13 @@ public:
 
     void interacts(std::shared_ptr<moving_object> a) override;
 
+    std::string direction() const { return direction_; };
+    std::string& direction() { return direction_; };
+
+    double previous_s_x() const { return previous_s_x_; };
+    double& previous_s_x()  { return previous_s_x_; };
+    double previous_s_y() const { return previous_s_y_; };
+    double& previous_s_y() { return previous_s_y_; };
 };
 
 // The "ground" on which all the animals live (like the std::vector
